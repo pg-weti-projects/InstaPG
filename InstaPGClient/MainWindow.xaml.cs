@@ -92,5 +92,10 @@ namespace InstaPGClient
             }
         }
 
+        private void users_SelectionChanged(object sender , RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }
