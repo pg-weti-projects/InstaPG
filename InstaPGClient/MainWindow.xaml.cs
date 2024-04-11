@@ -21,7 +21,6 @@ namespace InstaPGClient
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Random random = new Random();
 
         public MainWindow()
         {
