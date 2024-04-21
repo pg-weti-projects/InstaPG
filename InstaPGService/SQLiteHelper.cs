@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
+using System.IO;
 using System.Text;
 
 namespace InstaPGService
@@ -11,7 +12,7 @@ namespace InstaPGService
 
         public SQLiteHelper()
         {
-            // TODO tworzenie tabeli i bd jesli nie ma jej lokalnie
+            CreateDatabase();
         }
 
         public void InsertData(string tableName, Dictionary<string, object> columnData)
@@ -60,6 +61,50 @@ namespace InstaPGService
                     return count > 0;
                 }
             }
+        }
+
+        private void CreateDatabase()
+        {
+            using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+            {
+                if (!DatabaseExists())
+                    using (SQLiteCommand command = connection.CreateCommand())
+                {
+                    // Tabela Uzytkownicy
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS Uzytkownicy (id_uzytkownika INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                          "imie TEXT, " +
+                                          "nazwisko TEXT, " +
+                                          "wiek INTEGER, " +
+                                          "opis TEXT, " +
+                                          "pseudonim TEXT)";
+                    command.ExecuteNonQuery();
+
+                    // Tabela Posty
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS Posty (id_postu INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                          "id_uzytkownika INTEGER, " +
+                                          "tekst TEXT, " +
+                                          "FOREIGN KEY(id_uzytkownika) REFERENCES Uzytkownicy(id_uzytkownika))";
+                    command.ExecuteNonQuery();
+
+                    // Tabela Zdjecia
+                    command.CommandText = "CREATE TABLE IF NOT EXISTS Zdjecia (id_zdjecia INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                          "id_uzytkownika INTEGER, " +
+                                          "id_postu INTEGER, " +
+                                          "zdjecie BLOB, " +
+                                          "FOREIGN KEY(id_uzytkownika) REFERENCES Uzytkownicy(id_uzytkownika), " +
+                                          "FOREIGN KEY(id_postu) REFERENCES Posty(id_postu))";
+                    command.ExecuteNonQuery();
+                }
+            }
+        }
+
+        private bool DatabaseExists()
+        {
+            if (File.Exists("database.db"))
+            {
+                return true;
+            }
+            return false;
         }
 
         // Dodaj inne metody do pobierania, aktualizowania, usuwania danych, itp.

@@ -21,16 +21,18 @@ namespace InstaPGClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Random random = new Random();
+        private InstaPGServiceClient client;
 
         public MainWindow()
         {
             InitializeComponent();
+            client = new InstaPGServiceClient();
         }
 
 
         private void LogoutButton_Click(object sender, MouseButtonEventArgs e)
         {
-            InstaPGServiceClient client = new InstaPGServiceClient();
             try
             {
                 string result = client.GetData(0);
@@ -42,7 +44,7 @@ namespace InstaPGClient
                 MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            client.Close();
+           // client.Close();
         }
 
 

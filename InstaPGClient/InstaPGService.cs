@@ -10,6 +10,10 @@
 
 
 
+using System.Collections.Generic;
+using System;
+using System.Runtime.Remoting.Messaging;
+
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
 [System.ServiceModel.ServiceContractAttribute(ConfigurationName="IInstaPGService")]
 public interface IInstaPGService
@@ -31,11 +35,14 @@ public interface IInstaPGServiceChannel : IInstaPGService, System.ServiceModel.I
 [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
 public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInstaPGService>, IInstaPGService
 {
-    
+    private SQLiteHelper sqliteHelper;
+
+
     public InstaPGServiceClient()
     {
+        sqliteHelper = new SQLiteHelper();
     }
-    
+
     public InstaPGServiceClient(string endpointConfigurationName) : 
             base(endpointConfigurationName)
     {
@@ -59,6 +66,31 @@ public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInst
     public string GetData(int value)
     {
         return base.Channel.GetData(value);
+    }
+
+    public void AddTestUserToDb()
+    {
+        // Definiowanie danych do wstawienia
+        Dictionary<string, object> userData = new Dictionary<string, object>();
+        userData.Add("imie", "Jan");
+        userData.Add("nazwisko", "Kowalski");
+        userData.Add("wiek", 30);
+        userData.Add("opis", "Przykładowy opis użytkownika");
+        userData.Add("pseudonim", "JKowal");
+
+        // Wstawianie danych do tabeli "Uzytkownicy"
+        sqliteHelper.InsertData("Uzytkownicy", userData);
+
+    }
+
+    public void PrintTestUser()
+    {
+        Dictionary<string, object> xd = sqliteHelper.GetUserData(1);
+
+        foreach (var item in xd)
+        {
+            Console.WriteLine($"{item.Key}: {item.Value}");
+        }
     }
     
     public System.Threading.Tasks.Task<string> GetDataAsync(int value)
