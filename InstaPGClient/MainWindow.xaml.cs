@@ -23,20 +23,78 @@ namespace InstaPGClient
     {
         private Random random = new Random();
         private InstaPGServiceClient client;
+        private SQLiteHelper GlobalSQLHelper = new SQLiteHelper();
 
         public MainWindow()
         {
             InitializeComponent();
             client = new InstaPGServiceClient();
+            if(!client.isLogin())
+            {
+                //Pokaz ekran logowania
+
+
+                // operacje po zalogowaniu
+                client.SetUserLogged(true);
+                CurrentUserName.Text = client.getUserName() + " " + client.getUserSurname();
+                CurrentUserDescription.Text = client.getUserDescription();
+            }
         }
 
+        private void RegisterButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!GlobalSQLHelper.IsUsernameExists(NewUserLogin.Text))
+            {
+                GlobalSQLHelper.RegisterUser(NewUserLogin.Text, this.GetPassword(NewUserPasswordBox), NewUserName.Text, NewUserSurname.Text, Convert.ToInt32(NewUserAge.Text), NewUserDescription.Text);
+                MessageBox.Show("Zalozono nowe konto! Login: "+NewUserLogin.Text, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                NewUserLogin.Text = "";
+                NewUserName.Text = "";
+                NewUserSurname.Text = "";
+                NewUserDescription.Text = "";
+                NewUserPasswordBox.Password = "";
+            }
+            else
+                MessageBox.Show("Uzytkownik o takim loginie juz istnieje!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+
+        }
+
+        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(GlobalSQLHelper.AuthenticateUser(LoginUser.Text, GetPassword(LoginPassword)))
+            {
+                MessageBox.Show("Witamy na portalu!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                client.SetUserLogged(true);
+                client.CurrentUserData = GlobalSQLHelper.GetUserData(GlobalSQLHelper.GetUserIdByLogin(LoginUser.Text));
+                CurrentUserName.Text = client.getUserName() + " " + client.getUserSurname();
+                CurrentUserDescription.Text = client.getUserDescription() + " lvl:"+client.getUserAge();
+            }
+            else
+            {
+                MessageBox.Show("Zla nazwa uzytkownika albo haslo!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+        }
+
+        private string GetPassword(PasswordBox passwordBox)
+        {
+            // Pobierz wprowadzone hasło jako SecureString
+            System.Security.SecureString securePassword = passwordBox.SecurePassword;
+
+            // Konwertuj SecureString na String
+            IntPtr ptr = System.Runtime.InteropServices.Marshal.SecureStringToBSTR(securePassword);
+            string plainPassword = System.Runtime.InteropServices.Marshal.PtrToStringBSTR(ptr);
+            System.Runtime.InteropServices.Marshal.ZeroFreeBSTR(ptr);
+
+            return plainPassword;
+        }
 
         private void LogoutButton_Click(object sender, MouseButtonEventArgs e)
         {
             try
             {
                 string result = client.GetData(0);
-
+                client.SetUserLogged(false);
+                client.ClearCurrentUserData();
                 MessageBox.Show("User has been logged out.", "Logged Out", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)

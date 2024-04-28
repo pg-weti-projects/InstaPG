@@ -36,11 +36,14 @@ public interface IInstaPGServiceChannel : IInstaPGService, System.ServiceModel.I
 public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInstaPGService>, IInstaPGService
 {
     private SQLiteHelper sqliteHelper;
-
+    private bool UserLogged = false;
+    public Dictionary<string, object> CurrentUserData;
 
     public InstaPGServiceClient()
     {
         sqliteHelper = new SQLiteHelper();
+        this.AddTestUserToDb();
+        CurrentUserData = sqliteHelper.GetUserData(1);
     }
 
     public InstaPGServiceClient(string endpointConfigurationName) : 
@@ -77,11 +80,13 @@ public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInst
         userData.Add("wiek", 30);
         userData.Add("opis", "Przykładowy opis użytkownika");
         userData.Add("pseudonim", "JKowal");
+        userData.Add("hash_hasla", "dupa2137");
 
         // Wstawianie danych do tabeli "Uzytkownicy"
         sqliteHelper.InsertData("Uzytkownicy", userData);
 
     }
+
 
     public void PrintTestUser()
     {
@@ -96,5 +101,40 @@ public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInst
     public System.Threading.Tasks.Task<string> GetDataAsync(int value)
     {
         return base.Channel.GetDataAsync(value);
+    }
+
+    public bool isLogin()
+    {
+        return UserLogged;
+    }
+
+    public void SetUserLogged(bool value)
+    {
+        this.UserLogged = value;
+    }
+
+    public void ClearCurrentUserData()
+    {
+        this.CurrentUserData = null;
+    }
+
+    public String getUserName()
+    { 
+        return this.CurrentUserData["imie"].ToString();
+    }
+
+    public String getUserAge()
+    {
+        return this.CurrentUserData["wiek"].ToString();
+    }
+
+    public String getUserSurname()
+    {
+        return this.CurrentUserData["nazwisko"].ToString();
+    }
+
+    public String getUserDescription()
+    {
+        return this.CurrentUserData["opis"].ToString();
     }
 }
