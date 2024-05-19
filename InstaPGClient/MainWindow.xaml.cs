@@ -1,6 +1,7 @@
 ﻿using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.ServiceModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,28 +22,32 @@ namespace InstaPGClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        private InstaPGServiceClient client;
+        private string currentUsername;
 
         public MainWindow()
         {
             InitializeComponent();
+            client = new InstaPGServiceClient();
+            UpdateActiveUsersPanel();
         }
-
 
         private void LogoutButton_Click(object sender, MouseButtonEventArgs e)
         {
-            InstaPGServiceClient client = new InstaPGServiceClient();
             try
             {
-                string result = client.GetData(0);
-
+                client.Logout(currentUsername);
                 MessageBox.Show("User has been logged out.", "Logged Out", MessageBoxButton.OK, MessageBoxImage.Information);
+                UpdateActiveUsersPanel();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            client.Close();
+            finally
+            {
+                client.Close();
+            }
         }
 
 
@@ -95,6 +100,39 @@ namespace InstaPGClient
         private void users_SelectionChanged(object sender , RoutedEventArgs e)
         {
             throw new NotImplementedException();
+        }
+
+        private void LoginButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                currentUsername = UsernameTextBox.Text;
+                client.Login(currentUsername);
+                MessageBox.Show("User has been logged in.", "Logged In", MessageBoxButton.OK, MessageBoxImage.Information);
+                UpdateActiveUsersPanel();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UpdateActiveUsersPanel()
+        {
+            try
+            {
+                var activeUsers = client.GetActiveUsers();
+                ActiveUsersListBox.Items.Clear(); 
+
+                foreach (var user in activeUsers)
+                {
+                    ActiveUsersListBox.Items.Add(user);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
     }

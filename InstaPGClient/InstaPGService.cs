@@ -7,6 +7,9 @@
 //     kod zostanie ponownie wygenerowany.
 // </auto-generated>
 //------------------------------------------------------------------------------
+using System.Collections.Generic;
+using System.ServiceModel;
+using System.Threading.Tasks;
 
 
 
@@ -64,5 +67,25 @@ public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInst
     public System.Threading.Tasks.Task<string> GetDataAsync(int value)
     {
         return base.Channel.GetDataAsync(value);
+    }
+
+    public void Login(string username)
+    {
+        base.Channel.Login(username);
+    }
+
+    public void Logout(string username)
+    {
+        base.Channel.Logout(username);
+    }
+
+    public List<string> GetActiveUsers()
+    {
+        return base.Channel.GetActiveUsers();
+    }
+
+    public System.Threading.Tasks.Task<List<string>> GetActiveUsersAsync()
+    {
+        return base.Channel.GetActiveUsersAsync();
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.ServiceModel;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace InstaPGService
 {
@@ -14,6 +15,14 @@ namespace InstaPGService
         [OperationContract]
         string GetData(int value);
 
+        [OperationContract]
+        void Login(string username);
+
+        [OperationContract]
+        void Logout(string username);
+
+        [OperationContract]
+        List<string> GetActiveUsers();
     }
 
 }

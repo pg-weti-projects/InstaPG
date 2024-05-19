@@ -15,7 +15,28 @@
         <!-- List of users -->
         <StackPanel Grid.Column="0" Width="185" Background="#FFE8E8E8">
             <Label x:Name="AppName" Content="InstaPG" Height="59" Width="123" Foreground="#FF3776A7" FontFamily="Cascadia Code" FontSize="24"/>
-            <ListBox x:Name="UsersList" Height="480" Width="182" FontFamily="Candara" SelectionChanged="users_SelectionChanged" Background="#FFE8E8E8">
+            <StackPanel>
+                <TextBox x:Name="UsernameTextBox" Width="160" Height="30" Margin="10" VerticalAlignment="Top" GotFocus="RemovePlaceholder" LostFocus="AddPlaceholder">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox">
+                            <Setter Property="Text" Value="Enter username"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsFocused" Value="True">
+                                    <Setter Property="Text" Value=""/>
+                                    <Setter Property="Foreground" Value="Black"/>
+                                </Trigger>
+                                <Trigger Property="IsFocused" Value="False">
+                                    <Setter Property="Text" Value="Enter username"/>
+                                    <Setter Property="Foreground" Value="Gray"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+            </StackPanel>
+            <Button Content="Login" Width="100" Height="30" Margin="10" VerticalAlignment="Top" Click="LoginButton_Click"/>
+            <ListBox x:Name="ActiveUsersListBox" Height="200" Width="160" Margin="10" FontFamily="Candara" Background="#FFE8E8E8"/>
+            <ListBox x:Name="UsersList" Height="280" Width="182" FontFamily="Candara" SelectionChanged="users_SelectionChanged" Background="#FFE8E8E8">
                 <!-- List of users TO DO -->
             </ListBox>
             <Image x:Name="LogoutButton" Height="49" Source="/logout.png" Stretch="Fill" Width="56" HorizontalAlignment="Left" MouseUp="LogoutButton_Click"/>
