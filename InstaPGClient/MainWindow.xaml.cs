@@ -32,7 +32,7 @@ namespace InstaPGClient
             if(!client.isLogin())
             {
                 //Pokaz ekran logowania
-
+                MainTab.Visibility = Visibility.Collapsed;
 
                 // operacje po zalogowaniu
                 client.SetUserLogged(true);
@@ -62,11 +62,17 @@ namespace InstaPGClient
         {
             if(GlobalSQLHelper.AuthenticateUser(LoginUser.Text, GetPassword(LoginPassword)))
             {
-                MessageBox.Show("Witamy na portalu!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                
                 client.SetUserLogged(true);
                 client.CurrentUserData = GlobalSQLHelper.GetUserData(GlobalSQLHelper.GetUserIdByLogin(LoginUser.Text));
                 CurrentUserName.Text = client.getUserName() + " " + client.getUserSurname();
                 CurrentUserDescription.Text = client.getUserDescription() + " lvl:"+client.getUserAge();
+
+                MainTab.Visibility = Visibility.Visible;
+                MainTabControl.SelectedItem = MainTab;
+                RegistrationTab.Visibility = Visibility.Collapsed;
+                LoginTab.Visibility = Visibility.Collapsed;
+                MessageBox.Show("Witamy na portalu!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
             {
@@ -95,11 +101,15 @@ namespace InstaPGClient
                 string result = client.GetData(0);
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();
-                MessageBox.Show("User has been logged out.", "Logged Out", MessageBoxButton.OK, MessageBoxImage.Information);
+                LoginTab.Visibility = Visibility.Visible;
+                RegistrationTab.Visibility = Visibility.Visible;
+                MainTab.Visibility = Visibility.Collapsed;
+                MainTabControl.SelectedItem = LoginTab;
+                MessageBox.Show("Użytkownik został wylogowany.", "Wylogowano", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
            // client.Close();
@@ -121,7 +131,7 @@ namespace InstaPGClient
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -147,7 +157,7 @@ namespace InstaPGClient
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
