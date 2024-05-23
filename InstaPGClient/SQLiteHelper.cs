@@ -70,41 +70,43 @@ public class SQLiteHelper
         Console.WriteLine($"Próba utworzenia bazy danych w: {Path.GetFullPath("database.db")}");
         if (!DatabaseExists())
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
             {
-                using (SQLiteCommand command = connection.CreateCommand())
+                connection.Open();
                 {
-                    // Tabela Uzytkownicy
-                    command.CommandText = "CREATE TABLE Uzytkownicy (id_uzytkownika INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                          "imie TEXT, " +
-                                          "nazwisko TEXT, " +
-                                          "wiek INTEGER, " +
-                                          "opis TEXT, " +
-                                          "pseudonim TEXT, " +
-                                          "hash_hasla TEXT)";
+                    using (SQLiteCommand command = connection.CreateCommand())
+                    {
+                        // Tabela Uzytkownicy
+                        command.CommandText = "CREATE TABLE Uzytkownicy (id_uzytkownika INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                              "imie TEXT, " +
+                                              "nazwisko TEXT, " +
+                                              "wiek INTEGER, " +
+                                              "opis TEXT, " +
+                                              "pseudonim TEXT, " +
+                                              "hash_hasla TEXT, " +
+                                              "awatar BLOB)"; // Dodaj kolumnę "awatar" jako typ BLOB
                         command.ExecuteNonQuery();
 
-                    // Tabela Posty
-                    command.CommandText = "CREATE TABLE Posty (id_postu INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                          "id_uzytkownika INTEGER, " +
-                                          "tekst TEXT, " +
-                                          "FOREIGN KEY(id_uzytkownika) REFERENCES Uzytkownicy(id_uzytkownika))";
-                    command.ExecuteNonQuery();
+                        // Tabela Posty
+                        command.CommandText = "CREATE TABLE Posty (id_postu INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                              "id_uzytkownika INTEGER, " +
+                                              "tekst TEXT, " +
+                                              "FOREIGN KEY(id_uzytkownika) REFERENCES Uzytkownicy(id_uzytkownika))";
+                        command.ExecuteNonQuery();
 
-                    // Tabela Zdjecia
-                    command.CommandText = "CREATE TABLE Zdjecia (id_zdjecia INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                          "id_uzytkownika INTEGER, " +
-                                          "id_postu INTEGER, " +
-                                          "zdjecie BLOB, " +
-                                          "FOREIGN KEY(id_uzytkownika) REFERENCES Uzytkownicy(id_uzytkownika), " +
-                                          "FOREIGN KEY(id_postu) REFERENCES Posty(id_postu))";
-                    command.ExecuteNonQuery();
+                        // Tabela Zdjecia
+                        command.CommandText = "CREATE TABLE Zdjecia (id_zdjecia INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                              "id_uzytkownika INTEGER, " +
+                                              "zdjecie BLOB, " +
+                                              "id_postu INTEGER, " + // Dodaj kolumnę id_postu
+                                              "FOREIGN KEY(id_uzytkownika) REFERENCES Uzytkownicy(id_uzytkownika), " +
+                                              "FOREIGN KEY(id_postu) REFERENCES Posty(id_postu))";
+                        command.ExecuteNonQuery();
+                    }
                 }
+                connection.Close();
             }
-            connection.Close();
-        }
     }
+
 
     private bool DatabaseExists()
     {
@@ -146,61 +148,6 @@ public class SQLiteHelper
         }
 
         return userData;
-    }
-
-    public void InsertPost(int userId, string postText, List<BitmapImage> images)
-    {
-        // Sprawdź czy użytkownik istnieje
-        if (!IsUserExists(userId))
-        {
-            Console.WriteLine("Użytkownik o podanym identyfikatorze nie istnieje.");
-            return;
-        }
-
-        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                // Wstawianie danych posta do tabeli "Posty"
-                command.CommandText = "INSERT INTO Posty (id_uzytkownika, tekst) VALUES (@UserId, @PostText)";
-                command.Parameters.AddWithValue("@UserId", userId);
-                command.Parameters.AddWithValue("@PostText", postText);
-                command.ExecuteNonQuery();
-
-                // Pobierz identyfikator ostatnio wstawionego postu
-                command.CommandText = "SELECT last_insert_rowid()";
-                int postId = Convert.ToInt32(command.ExecuteScalar());
-
-                // Jeśli są przypisane zdjęcia, wstaw je do tabeli "Zdjecia" i przypisz je do posta
-                if (images != null && images.Count > 0)
-                {
-                    foreach (BitmapImage image in images)
-                    {
-                        // Konwertuj BitmapImage do tablicy bajtów
-                        byte[] imageData = null;
-                        JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                        encoder.Frames.Add(BitmapFrame.Create(image));
-
-                        using (MemoryStream memoryStream = new MemoryStream())
-                        {
-                            encoder.Save(memoryStream);
-                            imageData = memoryStream.ToArray();
-                        }
-
-                        // Wstawianie danych zdjęcia do tabeli "Zdjecia"
-                        command.CommandText = "INSERT INTO Zdjecia (id_uzytkownika, id_postu, zdjecie) " +
-                                              "VALUES (@UserId, @PostId, @ImageData)";
-                        command.Parameters.AddWithValue("@UserId", userId);
-                        command.Parameters.AddWithValue("@PostId", postId);
-                        command.Parameters.AddWithValue("@ImageData", imageData);
-                        command.ExecuteNonQuery();
-                    }
-                }
-
-                Console.WriteLine("Post został pomyślnie dodany.");
-            }
-        }
     }
 
     public bool IsUserExists(int userId)
@@ -276,9 +223,6 @@ public class SQLiteHelper
         }
         return res;
     }
-
-
-
     public bool AuthenticateUser(string username, string password)
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
@@ -312,8 +256,159 @@ public class SQLiteHelper
         }
     }
 
+    public void InsertPost(int userId, string postText, List<BitmapImage> images)
+    {
+        if (!IsUserExists(userId))
+        {
+            Console.WriteLine("Użytkownik o podanym identyfikatorze nie istnieje.");
+            return;
+        }
 
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteTransaction transaction = connection.BeginTransaction())
+            {
+                using (SQLiteCommand command = connection.CreateCommand())
+                {
+                    command.CommandText = "INSERT INTO Posty (id_uzytkownika, tekst) VALUES (@UserId, @PostText)";
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    command.Parameters.AddWithValue("@PostText", postText);
+                    command.ExecuteNonQuery();
 
+                    command.CommandText = "SELECT last_insert_rowid()";
+                    int postId = Convert.ToInt32(command.ExecuteScalar());
+
+                    if (images != null && images.Count > 0)
+                    {
+                        foreach (BitmapImage image in images)
+                        {
+                            byte[] imageData = null;
+                            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                            encoder.Frames.Add(BitmapFrame.Create(image));
+
+                            using (MemoryStream memoryStream = new MemoryStream())
+                            {
+                                encoder.Save(memoryStream);
+                                imageData = memoryStream.ToArray();
+                            }
+
+                            command.CommandText = "INSERT INTO Zdjecia (id_uzytkownika, zdjecie, id_postu) " +
+                                                  "VALUES (@UserId, @ImageData, @PostId)";
+                            command.Parameters.AddWithValue("@UserId", userId);
+                            command.Parameters.AddWithValue("@ImageData", imageData);
+                            command.Parameters.AddWithValue("@PostId", postId);
+                            command.ExecuteNonQuery();
+                        }
+                    }
+
+                    transaction.Commit();
+                    Console.WriteLine("Post został pomyślnie dodany.");
+                }
+            }
+        }
+    }
+
+    public List<BitmapImage> GetUserImages(int userId)
+    {
+        List<BitmapImage> images = new List<BitmapImage>();
+
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT zdjecie FROM Zdjecia WHERE id_uzytkownika=@UserId";
+                command.Parameters.AddWithValue("@UserId", userId);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        byte[] imageData = (byte[])reader["zdjecie"];
+                        BitmapImage bitmap = new BitmapImage();
+                        using (MemoryStream memoryStream = new MemoryStream(imageData))
+                        {
+                            bitmap.BeginInit();
+                            bitmap.StreamSource = memoryStream;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+                        }
+                        images.Add(bitmap);
+                    }
+                }
+            }
+        }
+
+        return images;
+    }
+
+    public void AddAvatarColumnToUsersTable()
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "ALTER TABLE Uzytkownicy ADD COLUMN awatar BLOB";
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public void SaveUserAvatar(int userId, byte[] avatarData)
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "UPDATE Uzytkownicy SET awatar = @AvatarData WHERE id_uzytkownika = @UserId";
+                command.Parameters.AddWithValue("@UserId", userId);
+                command.Parameters.AddWithValue("@AvatarData", avatarData);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public byte[] GetUserAvatar(int userId)
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT awatar FROM Uzytkownicy WHERE id_uzytkownika = @UserId";
+                command.Parameters.AddWithValue("@UserId", userId);
+                byte[] avatarData = command.ExecuteScalar() as byte[];
+                return avatarData;
+            }
+        }
+    }
+
+    public bool IsColumnExists(string tableName, string columnName)
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = $"PRAGMA table_info({tableName})";
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string existingColumnName = reader["name"].ToString();
+                        if (existingColumnName == columnName)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     // Dodaj inne metody do pobierania, aktualizowania, usuwania danych, itp.
 }

@@ -100,7 +100,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="PostWindow.xaml.cs">
+      <DependentUpon>PostWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SQLiteHelper.cs" />
+    <Page Include="PostWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
