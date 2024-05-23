@@ -24,6 +24,7 @@ namespace InstaPGClient
         private Random random = new Random();
         private InstaPGServiceClient client;
         private SQLiteHelper GlobalSQLHelper = new SQLiteHelper();
+        private List<User> users = new List<User>(); // przechowujmy tutaj uzytkownikow ktorych wykryjemy po zalogowaniu sie
 
         public MainWindow()
         {
@@ -72,6 +73,10 @@ namespace InstaPGClient
                 MainTabControl.SelectedItem = MainTab;
                 RegistrationTab.Visibility = Visibility.Collapsed;
                 LoginTab.Visibility = Visibility.Collapsed;
+
+                // Dodaj tutaj logike odpowiedzialna za pobieranie postow i listy uzytkonikow aktywnych
+
+
                 MessageBox.Show("Witamy na portalu!", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             else
@@ -106,6 +111,7 @@ namespace InstaPGClient
                 MainTab.Visibility = Visibility.Collapsed;
                 MainTabControl.SelectedItem = LoginTab;
                 MessageBox.Show("Użytkownik został wylogowany.", "Wylogowano", MessageBoxButton.OK, MessageBoxImage.Information);
+                users.Clear();
             }
             catch (Exception ex)
             {
