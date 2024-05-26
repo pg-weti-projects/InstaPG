@@ -72,7 +72,8 @@ namespace InstaPGClient
                 CurrentUserId = db.GetUserIdByLogin(username);
                 MessageBox.Show("Witamy na portalu!", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                var userData = db.GetUserData(CurrentUserId);
+                client.CurrentUserData = db.GetUserData(CurrentUserId);
+                var userData = client.CurrentUserData;
                 CurrentUserName.Text = userData["imie"].ToString() + " " + userData["nazwisko"].ToString();
                 CurrentUserDescription.Text = userData["opis"].ToString();
                 List<BitmapImage> userImages = db.GetUserImages(CurrentUserId);
@@ -92,7 +93,7 @@ namespace InstaPGClient
                 CurrentAmountPost.Text = currentPostCount.ToString();
 
                 MainTab.Visibility = Visibility.Visible;
-                MainTabControl.SelectedItem = MainTab;
+                TabControl.SelectedItem = MainTab;
                 RegistrationTab.Visibility = Visibility.Collapsed;
                 LoginTab.Visibility = Visibility.Collapsed;
             }
@@ -119,13 +120,12 @@ namespace InstaPGClient
         {
             try
             {
-                string result = client.GetData(0);
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();
                 LoginTab.Visibility = Visibility.Visible;
                 RegistrationTab.Visibility = Visibility.Visible;
                 MainTab.Visibility = Visibility.Collapsed;
-                MainTabControl.SelectedItem = LoginTab;
+                TabControl.SelectedItem = LoginTab;
                 MessageBox.Show("Użytkownik został wylogowany.", "Wylogowano", MessageBoxButton.OK, MessageBoxImage.Information);
                 users.Clear();
             }
@@ -134,7 +134,7 @@ namespace InstaPGClient
                 MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
-            client.Close();
+            //client.Close();
         }
 
 
