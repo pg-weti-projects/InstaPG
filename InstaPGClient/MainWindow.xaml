@@ -5,17 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InstaPGClient"
         mc:Ignorable="d"
-        Title="InstaPG" Height="615" Width="751">
+        Title="InstaPG" Height="650" Width="750">
     <Grid>
 
         <TabControl x:Name="TabControl" SelectionChanged="TabControl_SelectionChanged">
             <!-- Tab for Login -->
-            <TabItem Header="Logowanie">
+            <TabItem Header="Logowanie"  x:Name="LoginTab">
                 <Grid>
-                    <!-- Login Screen Content -->
-                    <!-- Place your login screen content here -->
                     <Grid>
-                        <!-- Login Screen Content -->
                         <StackPanel Margin="20">
                             <TextBlock Text="Nazwa użytkownika:"/>
                             <TextBox x:Name="LoginUser" Width="200" Margin="0,5"/>
@@ -27,13 +24,9 @@
                 </Grid>
             </TabItem>
 
-            <!-- Tab for Account Registration -->
-            <TabItem Header="Rejestracja">
+            <TabItem Header="Rejestracja" x:Name="RegistrationTab">
                 <Grid>
-                    <!-- Registration Screen Content -->
-                    <!-- Place your account registration screen content here -->
                     <Grid>
-                        <!-- Registration Screen Content -->
                         <StackPanel Margin="20">
                             <TextBlock Text="Imię:"/>
                             <TextBox x:Name="NewUserName" Width="200" Margin="0,5"/>
@@ -52,19 +45,17 @@
                     </Grid>
                 </Grid>
             </TabItem>
-            <!-- Main Content Tab -->
-            <TabItem Header="Główna">
+            
+            <TabItem Header="Główna" x:Name="MainTab">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- List of users -->
                     <StackPanel Grid.Column="0" Width="185" Background="#FFE8E8E8">
                         <Label x:Name="AppName" Content="InstaPG" Height="59" Width="123" Foreground="#FF3776A7" FontFamily="Cascadia Code" FontSize="24"/>
                         <ListBox x:Name="UsersList" Height="480" Width="182" FontFamily="Candara" SelectionChanged="users_SelectionChanged" Background="#FFE8E8E8">
-                            <!-- List of users TO DO -->
                         </ListBox>
                         <Image x:Name="LogoutButton" Height="49" Source="/logout.png" Stretch="Fill" Width="56" HorizontalAlignment="Left" MouseUp="LogoutButton_Click"/>
                     </StackPanel>

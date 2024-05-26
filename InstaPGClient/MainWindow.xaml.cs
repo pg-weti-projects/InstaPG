@@ -25,6 +25,7 @@ namespace InstaPGClient
         private Random random = new Random();
         private InstaPGServiceClient client;
         private SQLiteHelper GlobalSQLHelper = new SQLiteHelper();
+        private List<User> users = new List<User>(); // przechowujmy tutaj uzytkownikow ktorych wykryjemy po zalogowaniu sie
         public int CurrentUserId { get; set; }
 
         public MainWindow()
@@ -34,7 +35,7 @@ namespace InstaPGClient
             if(!client.isLogin())
             {
                 //Pokaz ekran logowania
-
+                MainTab.Visibility = Visibility.Collapsed;
 
                 // operacje po zalogowaniu
                 client.SetUserLogged(true);
@@ -90,7 +91,10 @@ namespace InstaPGClient
                 int currentPostCount = userImages.Count;
                 CurrentAmountPost.Text = currentPostCount.ToString();
 
-                TabControl.SelectedIndex = 2;
+                MainTab.Visibility = Visibility.Visible;
+                MainTabControl.SelectedItem = MainTab;
+                RegistrationTab.Visibility = Visibility.Collapsed;
+                LoginTab.Visibility = Visibility.Collapsed;
             }
             else
             {
@@ -118,11 +122,16 @@ namespace InstaPGClient
                 string result = client.GetData(0);
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();
-                MessageBox.Show("User has been logged out.", "Logged Out", MessageBoxButton.OK, MessageBoxImage.Information);
+                LoginTab.Visibility = Visibility.Visible;
+                RegistrationTab.Visibility = Visibility.Visible;
+                MainTab.Visibility = Visibility.Collapsed;
+                MainTabControl.SelectedItem = LoginTab;
+                MessageBox.Show("Użytkownik został wylogowany.", "Wylogowano", MessageBoxButton.OK, MessageBoxImage.Information);
+                users.Clear();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
 
             client.Close();
