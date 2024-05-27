@@ -15,9 +15,7 @@ namespace InstaPGClient
         public string Description { get; set; }
         public string Username { get; set; }
 
-        public User() { }
-
-        public User(int userId, string firstName, string lastName, int age, string description, string username, string passwordHash)
+        public User(int userId, string firstName, string lastName, int age, string description, string username)
         {
             UserId = userId;
             FirstName = firstName;

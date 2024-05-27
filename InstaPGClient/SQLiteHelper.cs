@@ -1,4 +1,5 @@
-﻿using System;
+﻿using InstaPGClient;
+using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.IO;
@@ -22,11 +23,10 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                // Budowanie zapytania SQL na podstawie nazwy tabeli i przekazanych kolumn oraz ich danych
                 StringBuilder sqlCommandBuilder = new StringBuilder($"INSERT INTO {tableName} (");
                 StringBuilder valuesBuilder = new StringBuilder("VALUES (");
 
-                // Dodawanie nazw kolumn do zapytania SQL
+                // Adding column names to SQL query
                 foreach (var column in columnData)
                 {
                     sqlCommandBuilder.Append($"{column.Key}, ");
@@ -34,40 +34,26 @@ public class SQLiteHelper
                     command.Parameters.AddWithValue($"@{column.Key}", column.Value);
                 }
 
-                // Usuwanie ostatniego przecinka i dodawanie nawiasów zamykających
+                // Removing last comma and adding closing brackets
                 sqlCommandBuilder.Remove(sqlCommandBuilder.Length - 2, 2).Append(") ");
                 valuesBuilder.Remove(valuesBuilder.Length - 2, 2).Append(")");
 
                 command.CommandText = sqlCommandBuilder.ToString() + valuesBuilder.ToString();
 
-                // Wykonanie zapytania SQL
+                // Make SQL query
                 command.ExecuteNonQuery();
                 connection.Close();
-                Console.WriteLine("Dane zostały pomyślnie wstawione do tabeli.");
+                Console.WriteLine("Data has been successfuly added to table.");
             }
         }
     }
 
-    public bool IsTableExists(string tableName)
-    {
-        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=@TableName";
-                command.Parameters.AddWithValue("@TableName", tableName);
-
-                int count = Convert.ToInt32(command.ExecuteScalar());
-
-                return count > 0;
-            }
-        }
-    }
-
+    /// <summary>
+    /// Creates database.
+    /// </summary>
     private void CreateDatabase()
     {
-        Console.WriteLine($"Próba utworzenia bazy danych w: {Path.GetFullPath("database.db")}");
+        Console.WriteLine($"Attempt to create database in: {Path.GetFullPath("database.db")}");
         if (!DatabaseExists())
             using (SQLiteConnection connection = new SQLiteConnection(connectionString))
             {
@@ -117,17 +103,22 @@ public class SQLiteHelper
             }
     }
 
-
+    /// <summary>
+    /// Checks if database file exists.
+    /// </summary>
     private bool DatabaseExists()
     {
         if (File.Exists("database.db"))
         {
-            Console.WriteLine("Baza danych istnieje!");
+            Console.WriteLine("Database already exists!");
             return true;
         }
         return false;
     }
 
+    /// <summary>
+    /// Gets user data from DB in dict format.
+    /// </summary>
     public Dictionary<string, object> GetUserData(int userId)
     {
         Dictionary<string, object> userData = new Dictionary<string, object>();
@@ -144,7 +135,6 @@ public class SQLiteHelper
                 {
                     if (reader.Read())
                     {
-                        // Wczytaj dane użytkownika z wyniku zapytania i dodaj do słownika
                         userData.Add("user_id", reader.GetInt32(0));
                         userData.Add("name", reader.GetString(1));
                         userData.Add("surname", reader.GetString(2));
@@ -160,24 +150,42 @@ public class SQLiteHelper
         return userData;
     }
 
-    public bool IsUserExists(int userId)
+    /// <summary>
+    /// Gets all users from DB and returns list of users objects.
+    /// </summary>
+    public List<User> GetAllUsersFromDb()
     {
+        List<User> users = new List<User>();
+
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
         {
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT COUNT(*) FROM Users WHERE user_id=@UserId";
-                command.Parameters.AddWithValue("@UserId", userId);
+                command.CommandText = "SELECT user_id, name, surname, age, description, login, avatar FROM Users";
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int userId = reader.GetInt32(0);
+                        string firstName = reader.GetString(1);
+                        string lastName = reader.GetString(2);
+                        int age = reader.GetInt32(3);
+                        string description = reader.GetString(4);
+                        string username = reader.GetString(5);
 
-                int count = Convert.ToInt32(command.ExecuteScalar());
-
-                return count > 0;
+                        User user = new User(userId, firstName, lastName, age, description, username);
+                        users.Add(user);
+                    }
+                }
             }
         }
+        return users;
     }
 
-
+    /// <summary>
+    /// Adds new user data to DB.
+    /// </summary>
     public void RegisterUser(string username, string password, string firstName, string lastName, int age, string description)
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
@@ -185,10 +193,8 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                // Hashowanie hasła przed zapisaniem do bazy danych
                 string hashedPassword = HashPassword(password);
 
-                // Wstawianie danych użytkownika do tabeli "Users"
                 command.CommandText = "INSERT INTO Users (login, pass_hash, name, surname, age, description) VALUES (@Username, @HashedPassword, @FirstName, @LastName, @Age, @Description)";
                 command.Parameters.AddWithValue("@Username", username);
                 command.Parameters.AddWithValue("@HashedPassword", hashedPassword);
@@ -201,38 +207,10 @@ public class SQLiteHelper
         }
     }
 
-    public bool IsUsernameExists(string username)
-    {
-        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = "SELECT COUNT(*) FROM Users WHERE login=@Username";
-                command.Parameters.AddWithValue("@Username", username);
-
-                int count = Convert.ToInt32(command.ExecuteScalar());
-
-                return count > 0;
-            }
-        }
-    }
-
-    public int GetUserIdByLogin(string username)
-    {
-        int res = 0;
-        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = "SELECT user_id FROM Users WHERE login = @Username";
-                command.Parameters.AddWithValue("@Username", username);
-                res = Convert.ToInt32(command.ExecuteScalar());
-            }
-        }
-        return res;
-    }
+    /// <summary>
+    /// Finds a user with a given name in the DB and checks whether his decrypted password is the same as the one
+    /// given in the arg.
+    /// </summary>
     public bool AuthenticateUser(string username, string password)
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
@@ -240,18 +218,20 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                // Pobieranie zahaszowanego hasła użytkownika z bazy danych
+                // Download hashed user password from DB
                 command.CommandText = "SELECT pass_hash FROM Users WHERE login = @Username";
                 command.Parameters.AddWithValue("@Username", username);
                 string hashedPasswordFromDB = command.ExecuteScalar() as string;
 
-                // Hashowanie wprowadzonego hasła i porównywanie z zahaszowanym hasłem z bazy danych
                 string hashedPassword = HashPassword(password);
                 return hashedPassword == hashedPasswordFromDB;
             }
         }
     }
 
+    /// <summary>
+    /// Hashes the given string.
+    /// </summary>
     private string HashPassword(string password)
     {
         using (SHA256 sha256 = SHA256.Create())
@@ -283,7 +263,6 @@ public class SQLiteHelper
                 {
                     DateTime now = DateTime.Now;
 
-                    // Formatowanie daty do formatu DATETIME dla SQLite
                     string formattedDate = now.ToString("yyyy-MM-dd HH:mm:ss");
                     command.CommandText = "INSERT INTO Posts (user_id, date, post_description) VALUES (@UserId, @Date, @PostText)";
                     command.Parameters.AddWithValue("@UserId", userId);
@@ -324,6 +303,96 @@ public class SQLiteHelper
         }
     }
 
+    public void AddAvatarColumnToUsersTable()
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "ALTER TABLE Users ADD COLUMN avatar BLOB";
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public void SaveUserAvatar(int userId, byte[] avatarData)
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "UPDATE Users SET avatar = @AvatarData WHERE user_id = @UserId";
+                command.Parameters.AddWithValue("@UserId", userId);
+                command.Parameters.AddWithValue("@AvatarData", avatarData);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Checks if the user of given user ID exists in database.
+    /// </summary>
+    public bool IsUserExists(int userId)
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM Users WHERE user_id=@UserId";
+                command.Parameters.AddWithValue("@UserId", userId);
+
+                int count = Convert.ToInt32(command.ExecuteScalar());
+
+                return count > 0;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Checks if user with given username exists in DB.
+    /// </summary>
+    public bool IsUsernameExists(string username)
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM Users WHERE login=@Username";
+                command.Parameters.AddWithValue("@Username", username);
+
+                int count = Convert.ToInt32(command.ExecuteScalar());
+
+                return count > 0;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets user ID by given username.
+    /// </summary>
+    public int GetUserIdByLogin(string username)
+    {
+        int res = 0;
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT user_id FROM Users WHERE login = @Username";
+                command.Parameters.AddWithValue("@Username", username);
+                res = Convert.ToInt32(command.ExecuteScalar());
+            }
+        }
+        return res;
+    }
+
+    /// <summary>
+    /// Gets all saved user images ( based on user ID ) from DB and returns BitmapImage objects list.
+    /// </summary>
     public List<BitmapImage> GetUserImages(int userId)
     {
         List<BitmapImage> images = new List<BitmapImage>();
@@ -358,35 +427,10 @@ public class SQLiteHelper
         return images;
     }
 
-    public void AddAvatarColumnToUsersTable()
-    {
-        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = "ALTER TABLE Users ADD COLUMN avatar BLOB";
-                command.ExecuteNonQuery();
-            }
-        }
-    }
-
-    public void SaveUserAvatar(int userId, byte[] avatarData)
-    {
-        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
-        {
-            connection.Open();
-            using (SQLiteCommand command = connection.CreateCommand())
-            {
-                command.CommandText = "UPDATE Users SET avatar = @AvatarData WHERE user_id = @UserId";
-                command.Parameters.AddWithValue("@UserId", userId);
-                command.Parameters.AddWithValue("@AvatarData", avatarData);
-                command.ExecuteNonQuery();
-            }
-        }
-    }
-
-    public byte[] GetUserAvatar(int userId)
+    /// <summary>
+    /// Gets user avatar ( based on user ID ) from DB and returns it as BitmapImage obj.
+    /// </summary>
+    public BitmapImage GetUserAvatar(int userId)
     {
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
         {
@@ -396,9 +440,22 @@ public class SQLiteHelper
                 command.CommandText = "SELECT avatar FROM Users WHERE user_id = @UserId";
                 command.Parameters.AddWithValue("@UserId", userId);
                 byte[] avatarData = command.ExecuteScalar() as byte[];
-                return avatarData;
+            
+                if (avatarData != null)
+                {
+                    BitmapImage bitmap = new BitmapImage();
+                    using (MemoryStream memoryStream = new MemoryStream(avatarData))
+                    {
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = memoryStream;
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                    }
+                    return bitmap;
+                }
             }
         }
+        return null;
     }
 
     public bool IsColumnExists(string tableName, string columnName)
@@ -424,6 +481,4 @@ public class SQLiteHelper
         }
         return false;
     }
-
-    // Dodaj inne metody do pobierania, aktualizowania, usuwania danych, itp.
 }

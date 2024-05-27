@@ -100,10 +100,17 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="OtherUserProfileWindow.xaml.cs">
+      <DependentUpon>OtherUserProfileWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PostWindow.xaml.cs">
       <DependentUpon>PostWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="SQLiteHelper.cs" />
+    <Page Include="OtherUserProfileWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="PostWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -151,17 +158,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="logout.png" />
+    <Resource Include="img/logout.png" />
+    <Resource Include="img\example_picture_3.png" />
+    <Resource Include="img\default_user_avatar.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="user_avatar.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="example_picture_1.png" />
-    <Resource Include="example_picture_2.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="example_picture_3.png" />
+    <Resource Include="img/example_picture_1.png" />
+    <Resource Include="img/example_picture_2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -42,7 +42,7 @@ public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInst
     public InstaPGServiceClient()
     {
         sqliteHelper = new SQLiteHelper();
-        this.AddTestUserToDb();
+        //this.AddTestUserToDb();
         CurrentUserData = sqliteHelper.GetUserData(1);
     }
 
