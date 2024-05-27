@@ -16,6 +16,6 @@
         <Image x:Name="SelectedImagePreview" Grid.Row="2" Margin="-3,71,179,10"/>
 
         <Button Content="Add Photo" Grid.Row="3" Margin="5" Click="AddPhotoButton_Click"/>
-        <Label Content="Opis" HorizontalAlignment="Left" Height="29" Margin="308,41,0,0" Grid.RowSpan="3" VerticalAlignment="Top" Width="109"/>
+        <Label Content="Description" HorizontalAlignment="Left" Height="29" Margin="308,41,0,0" Grid.RowSpan="3" VerticalAlignment="Top" Width="109"/>
     </Grid>
 </Window>

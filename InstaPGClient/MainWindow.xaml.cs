@@ -34,13 +34,8 @@ namespace InstaPGClient
             client = new InstaPGServiceClient();
             if(!client.isLogin())
             {
-                //Pokaz ekran logowania
+                //Ukryj ekran główny aplikacji
                 MainTab.Visibility = Visibility.Collapsed;
-
-                // operacje po zalogowaniu
-                client.SetUserLogged(true);
-                CurrentUserName.Text = client.getUserName() + " " + client.getUserSurname();
-                CurrentUserDescription.Text = client.getUserDescription();
             }
         }
 
@@ -49,7 +44,7 @@ namespace InstaPGClient
             if (!GlobalSQLHelper.IsUsernameExists(NewUserLogin.Text))
             {
                 GlobalSQLHelper.RegisterUser(NewUserLogin.Text, this.GetPassword(NewUserPasswordBox), NewUserName.Text, NewUserSurname.Text, Convert.ToInt32(NewUserAge.Text), NewUserDescription.Text);
-                MessageBox.Show("Zalozono nowe konto! Login: " + NewUserLogin.Text, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("New account has been created! Login: " + NewUserLogin.Text, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
                 NewUserLogin.Text = "";
                 NewUserName.Text = "";
                 NewUserSurname.Text = "";
@@ -57,7 +52,7 @@ namespace InstaPGClient
                 NewUserPasswordBox.Password = "";
             }
             else
-                MessageBox.Show("Uzytkownik o takim loginie juz istnieje!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("User with that login already exist!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 
         }
 
@@ -70,12 +65,11 @@ namespace InstaPGClient
             if (db.AuthenticateUser(username, password))
             {
                 CurrentUserId = db.GetUserIdByLogin(username);
-                MessageBox.Show("Witamy na portalu!", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Welcome!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 client.CurrentUserData = db.GetUserData(CurrentUserId);
-                var userData = client.CurrentUserData;
-                CurrentUserName.Text = userData["imie"].ToString() + " " + userData["nazwisko"].ToString();
-                CurrentUserDescription.Text = userData["opis"].ToString();
+                CurrentUserName.Text = client.getUserName() + " " + client.getUserSurname();
+                CurrentUserDescription.Text = client.getUserDescription() + "\nAge: " + client.getUserAge();
                 List<BitmapImage> userImages = db.GetUserImages(CurrentUserId);
                 UserGallery.Items.Clear();
                 foreach (var image in userImages)
@@ -99,7 +93,7 @@ namespace InstaPGClient
             }
             else
             {
-                MessageBox.Show("Zla nazwa uzytkownika albo haslo!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("Wrong user name or password!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -126,7 +120,7 @@ namespace InstaPGClient
                 RegistrationTab.Visibility = Visibility.Visible;
                 MainTab.Visibility = Visibility.Collapsed;
                 TabControl.SelectedItem = LoginTab;
-                MessageBox.Show("Użytkownik został wylogowany.", "Wylogowano", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("User has been log out.", "Log out", MessageBoxButton.OK, MessageBoxImage.Information);
                 users.Clear();
             }
             catch (Exception ex)
@@ -222,6 +216,7 @@ namespace InstaPGClient
             }
         }
 
+
         private void HandlePhotoAdded(byte[] imageData, string description)
         {
             try
@@ -244,6 +239,11 @@ namespace InstaPGClient
 
                 GlobalSQLHelper.InsertPost(CurrentUserId, description, images);
 
+                
+                List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
+                int currentPostCount = userImages.Count;
+                CurrentAmountPost.Text = currentPostCount.ToString();
+
                 MessageBox.Show("Photo added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
@@ -254,7 +254,7 @@ namespace InstaPGClient
 
         private void CreateOrUpdateAvatarColumn()
         {
-            if (!GlobalSQLHelper.IsColumnExists("Uzytkownicy", "awatar"))
+            if (!GlobalSQLHelper.IsColumnExists("Users", "avatar"))
             {
                 GlobalSQLHelper.AddAvatarColumnToUsersTable();
             }
@@ -275,8 +275,9 @@ namespace InstaPGClient
                         CreateOrUpdateAvatarColumn();
 
                         var userData = GlobalSQLHelper.GetUserData(CurrentUserId);
-                        CurrentUserName.Text = userData["imie"].ToString() + " " + userData["nazwisko"].ToString();
-                        CurrentUserDescription.Text = userData["opis"].ToString();
+                        CurrentUserName.Text = userData["name"].ToString() + " " + userData["surname"].ToString();
+                        CurrentUserDescription.Text = CurrentUserDescription.Text = client.getUserDescription() + "\nAge: " + client.getUserAge();
+
 
                         List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
                         UserGallery.Items.Clear();
@@ -320,8 +321,8 @@ namespace InstaPGClient
 
         private void ShowDefaultView()
         {
-            CurrentUserName.Text = "Nazwa użytkownika";
-            CurrentUserDescription.Text = "Opis użytkownika";
+            CurrentUserName.Text = "User name";
+            CurrentUserDescription.Text = "Description";
             CurrentAmountPost.Text = "0";
             UserGallery.Items.Clear();
             UserAvatar.Source = new BitmapImage(new Uri("user_avatar.png", UriKind.Relative));
@@ -333,5 +334,9 @@ namespace InstaPGClient
             throw new NotImplementedException();
         }
 
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
