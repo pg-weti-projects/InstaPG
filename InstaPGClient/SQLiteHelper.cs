@@ -75,31 +75,41 @@ public class SQLiteHelper
                 {
                     using (SQLiteCommand command = connection.CreateCommand())
                     {
-                        // Tabela Uzytkownicy
-                        command.CommandText = "CREATE TABLE Uzytkownicy (id_uzytkownika INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                              "imie TEXT, " +
-                                              "nazwisko TEXT, " +
-                                              "wiek INTEGER, " +
-                                              "opis TEXT, " +
-                                              "pseudonim TEXT, " +
-                                              "hash_hasla TEXT, " +
-                                              "awatar BLOB)"; // Dodaj kolumnę "awatar" jako typ BLOB
+                        // Tabela Users
+                        command.CommandText = "CREATE TABLE Users (user_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                              "name TEXT, " +
+                                              "surname TEXT, " +
+                                              "age INTEGER, " +
+                                              "description TEXT, " +
+                                              "login TEXT, " +
+                                              "pass_hash TEXT, " +
+                                              "avatar BLOB)"; // Dodaj kolumnę "avatar" jako typ BLOB
                         command.ExecuteNonQuery();
 
-                        // Tabela Posty
-                        command.CommandText = "CREATE TABLE Posty (id_postu INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                              "id_uzytkownika INTEGER, " +
-                                              "tekst TEXT, " +
-                                              "FOREIGN KEY(id_uzytkownika) REFERENCES Uzytkownicy(id_uzytkownika))";
+                        // Tabela Posts
+                        command.CommandText = "CREATE TABLE Posts (post_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                              "user_id INTEGER, " +
+                                              "post_description TEXT, " +
+                                              "date DATATIME, " +
+                                              "FOREIGN KEY(user_id) REFERENCES Users(user_id))";
                         command.ExecuteNonQuery();
 
-                        // Tabela Zdjecia
-                        command.CommandText = "CREATE TABLE Zdjecia (id_zdjecia INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                                              "id_uzytkownika INTEGER, " +
+                        // Tabela Photos
+                        command.CommandText = "CREATE TABLE Photos (photo_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                              "user_id INTEGER, " +
                                               "zdjecie BLOB, " +
-                                              "id_postu INTEGER, " + // Dodaj kolumnę id_postu
-                                              "FOREIGN KEY(id_uzytkownika) REFERENCES Uzytkownicy(id_uzytkownika), " +
-                                              "FOREIGN KEY(id_postu) REFERENCES Posty(id_postu))";
+                                              "post_id INTEGER, " + // Dodaj kolumnę post_id
+                                              "FOREIGN KEY(user_id) REFERENCES Users(user_id), " +
+                                              "FOREIGN KEY(post_id) REFERENCES Posts(post_id))";
+                        command.ExecuteNonQuery();
+
+                        // Tabela Comments
+                        command.CommandText = "CREATE TABLE Comments (comment_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                                              "user_id INTEGER, " +
+                                              "comment_text TEXT, " +
+                                              "post_id INTEGER, " +
+                                              "FOREIGN KEY(user_id) REFERENCES Users(user_id), " +
+                                              "FOREIGN KEY(post_id) REFERENCES Posts(post_id))";
                         command.ExecuteNonQuery();
                     }
                 }
@@ -127,7 +137,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT * FROM Uzytkownicy WHERE id_uzytkownika=@UserId";
+                command.CommandText = "SELECT * FROM Users WHERE user_id=@UserId";
                 command.Parameters.AddWithValue("@UserId", userId);
 
                 using (SQLiteDataReader reader = command.ExecuteReader())
@@ -135,13 +145,13 @@ public class SQLiteHelper
                     if (reader.Read())
                     {
                         // Wczytaj dane użytkownika z wyniku zapytania i dodaj do słownika
-                        userData.Add("id_uzytkownika", reader.GetInt32(0));
-                        userData.Add("imie", reader.GetString(1));
-                        userData.Add("nazwisko", reader.GetString(2));
-                        userData.Add("wiek", reader.GetInt32(3));
-                        userData.Add("opis", reader.GetString(4));
-                        userData.Add("pseudonim", reader.GetString(5));
-                        userData.Add("hash_hasla", reader.GetString(6));
+                        userData.Add("user_id", reader.GetInt32(0));
+                        userData.Add("name", reader.GetString(1));
+                        userData.Add("surname", reader.GetString(2));
+                        userData.Add("age", reader.GetInt32(3));
+                        userData.Add("description", reader.GetString(4));
+                        userData.Add("login", reader.GetString(5));
+                        userData.Add("pass_hash", reader.GetString(6));
                     }
                 }
             }
@@ -157,7 +167,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT COUNT(*) FROM Uzytkownicy WHERE id_uzytkownika=@UserId";
+                command.CommandText = "SELECT COUNT(*) FROM Users WHERE user_id=@UserId";
                 command.Parameters.AddWithValue("@UserId", userId);
 
                 int count = Convert.ToInt32(command.ExecuteScalar());
@@ -178,8 +188,8 @@ public class SQLiteHelper
                 // Hashowanie hasła przed zapisaniem do bazy danych
                 string hashedPassword = HashPassword(password);
 
-                // Wstawianie danych użytkownika do tabeli "Uzytkownicy"
-                command.CommandText = "INSERT INTO Uzytkownicy (pseudonim, hash_hasla, imie, nazwisko, wiek, opis) VALUES (@Username, @HashedPassword, @FirstName, @LastName, @Age, @Description)";
+                // Wstawianie danych użytkownika do tabeli "Users"
+                command.CommandText = "INSERT INTO Users (login, pass_hash, name, surname, age, description) VALUES (@Username, @HashedPassword, @FirstName, @LastName, @Age, @Description)";
                 command.Parameters.AddWithValue("@Username", username);
                 command.Parameters.AddWithValue("@HashedPassword", hashedPassword);
                 command.Parameters.AddWithValue("@FirstName", firstName);
@@ -198,7 +208,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT COUNT(*) FROM Uzytkownicy WHERE pseudonim=@Username";
+                command.CommandText = "SELECT COUNT(*) FROM Users WHERE login=@Username";
                 command.Parameters.AddWithValue("@Username", username);
 
                 int count = Convert.ToInt32(command.ExecuteScalar());
@@ -216,7 +226,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT id_uzytkownika FROM Uzytkownicy WHERE pseudonim = @Username";
+                command.CommandText = "SELECT user_id FROM Users WHERE login = @Username";
                 command.Parameters.AddWithValue("@Username", username);
                 res = Convert.ToInt32(command.ExecuteScalar());
             }
@@ -231,7 +241,7 @@ public class SQLiteHelper
             using (SQLiteCommand command = connection.CreateCommand())
             {
                 // Pobieranie zahaszowanego hasła użytkownika z bazy danych
-                command.CommandText = "SELECT hash_hasla FROM Uzytkownicy WHERE pseudonim = @Username";
+                command.CommandText = "SELECT pass_hash FROM Users WHERE login = @Username";
                 command.Parameters.AddWithValue("@Username", username);
                 string hashedPasswordFromDB = command.ExecuteScalar() as string;
 
@@ -271,8 +281,13 @@ public class SQLiteHelper
             {
                 using (SQLiteCommand command = connection.CreateCommand())
                 {
-                    command.CommandText = "INSERT INTO Posty (id_uzytkownika, tekst) VALUES (@UserId, @PostText)";
+                    DateTime now = DateTime.Now;
+
+                    // Formatowanie daty do formatu DATETIME dla SQLite
+                    string formattedDate = now.ToString("yyyy-MM-dd HH:mm:ss");
+                    command.CommandText = "INSERT INTO Posts (user_id, date, post_description) VALUES (@UserId, @Date, @PostText)";
                     command.Parameters.AddWithValue("@UserId", userId);
+                    command.Parameters.AddWithValue("@Date", formattedDate);
                     command.Parameters.AddWithValue("@PostText", postText);
                     command.ExecuteNonQuery();
 
@@ -293,7 +308,7 @@ public class SQLiteHelper
                                 imageData = memoryStream.ToArray();
                             }
 
-                            command.CommandText = "INSERT INTO Zdjecia (id_uzytkownika, zdjecie, id_postu) " +
+                            command.CommandText = "INSERT INTO Photos (user_id, zdjecie, post_id) " +
                                                   "VALUES (@UserId, @ImageData, @PostId)";
                             command.Parameters.AddWithValue("@UserId", userId);
                             command.Parameters.AddWithValue("@ImageData", imageData);
@@ -318,7 +333,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT zdjecie FROM Zdjecia WHERE id_uzytkownika=@UserId";
+                command.CommandText = "SELECT zdjecie FROM Photos WHERE user_id=@UserId";
                 command.Parameters.AddWithValue("@UserId", userId);
 
                 using (SQLiteDataReader reader = command.ExecuteReader())
@@ -350,7 +365,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "ALTER TABLE Uzytkownicy ADD COLUMN awatar BLOB";
+                command.CommandText = "ALTER TABLE Users ADD COLUMN avatar BLOB";
                 command.ExecuteNonQuery();
             }
         }
@@ -363,7 +378,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "UPDATE Uzytkownicy SET awatar = @AvatarData WHERE id_uzytkownika = @UserId";
+                command.CommandText = "UPDATE Users SET avatar = @AvatarData WHERE user_id = @UserId";
                 command.Parameters.AddWithValue("@UserId", userId);
                 command.Parameters.AddWithValue("@AvatarData", avatarData);
                 command.ExecuteNonQuery();
@@ -378,7 +393,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT awatar FROM Uzytkownicy WHERE id_uzytkownika = @UserId";
+                command.CommandText = "SELECT avatar FROM Users WHERE user_id = @UserId";
                 command.Parameters.AddWithValue("@UserId", userId);
                 byte[] avatarData = command.ExecuteScalar() as byte[];
                 return avatarData;

@@ -75,15 +75,15 @@ public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInst
     {
         // Definiowanie danych do wstawienia
         Dictionary<string, object> userData = new Dictionary<string, object>();
-        userData.Add("imie", "Jan");
-        userData.Add("nazwisko", "Kowalski");
-        userData.Add("wiek", 30);
-        userData.Add("opis", "Przykładowy opis użytkownika");
-        userData.Add("pseudonim", "JKowal");
-        userData.Add("hash_hasla", "dupa2137");
+        userData.Add("name", "Jan");
+        userData.Add("surname", "Kowalski");
+        userData.Add("age", 30);
+        userData.Add("description", "Przykładowy opis użytkownika");
+        userData.Add("login", "JKowal");
+        userData.Add("pass_hash", "dupa2137");
 
-        // Wstawianie danych do tabeli "Uzytkownicy"
-        sqliteHelper.InsertData("Uzytkownicy", userData);
+        // Wstawianie danych do tabeli "Users"
+        sqliteHelper.InsertData("Users", userData);
 
     }
 
@@ -120,21 +120,21 @@ public partial class InstaPGServiceClient : System.ServiceModel.ClientBase<IInst
 
     public String getUserName()
     { 
-        return this.CurrentUserData["imie"].ToString();
+        return this.CurrentUserData["name"].ToString();
     }
 
     public String getUserAge()
     {
-        return this.CurrentUserData["wiek"].ToString();
+        return this.CurrentUserData["age"].ToString();
     }
 
     public String getUserSurname()
     {
-        return this.CurrentUserData["nazwisko"].ToString();
+        return this.CurrentUserData["surname"].ToString();
     }
 
     public String getUserDescription()
     {
-        return this.CurrentUserData["opis"].ToString();
+        return this.CurrentUserData["description"].ToString();
     }
 }
