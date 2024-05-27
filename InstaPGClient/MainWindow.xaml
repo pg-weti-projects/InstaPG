@@ -81,13 +81,15 @@
                         </Border>
 
                         <!-- User Gallery -->
-                        <ItemsControl x:Name="UserGallery" Margin="10,165,10,10" Background="#FFF3F3F3">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                        </ItemsControl>
+                        <ScrollViewer Margin="10,165,10,10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <ItemsControl x:Name="UserGallery" Background="#FFF3F3F3">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                        </ScrollViewer>
                         <Button x:Name="AddAvatar" Content="+"  Click="AddAvatarButton_Click" HorizontalAlignment="Left" Height="17" Margin="442,19,0,0" VerticalAlignment="Top" Width="20" Background="White" BorderBrush="#FFF1E7E7" Foreground="#FF132AEA" FontWeight="Bold" FontFamily="Arial Rounded MT Bold"/>
                     </Grid>
                 </Grid>
