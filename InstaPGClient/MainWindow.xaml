@@ -7,28 +7,16 @@
         Title="InstaPG" Height="650" Width="750"
         ResizeMode="NoResize">
     <Window.Background>
-        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-            <GradientStop Color="Black"/>
-            <GradientStop Color="#FF711616" Offset="1"/>
-        </LinearGradientBrush>
+        <ImageBrush ImageSource="/img/background-new.jpg"/>
     </Window.Background>
     <Grid>
 
         <TabControl x:Name="TabControl" SelectionChanged="TabControl_SelectionChanged">
             <TabControl.Background>
-                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                    <GradientStop Color="Black"/>
-                    <GradientStop Color="#FFFF9797" Offset="1"/>
-                </LinearGradientBrush>
+                <ImageBrush TileMode="Tile" ImageSource="/img/background-new.jpg"/>
             </TabControl.Background>
             <!-- Tab for Login -->
-            <TabItem Header="Login"  x:Name="LoginTab">
-                <TabItem.Background>
-                    <LinearGradientBrush EndPoint="0,1">
-                        <GradientStop Color="#FFF0F0F0"/>
-                        <GradientStop Color="White" Offset="1"/>
-                    </LinearGradientBrush>
-                </TabItem.Background>
+            <TabItem Header="Login"  x:Name="LoginTab" Background="White">
                 <Grid>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -49,23 +37,36 @@
                                     <DropShadowEffect/>
                                 </PasswordBox.Effect>
                             </PasswordBox>
-                            <Button Content="LOGIN" Click="LoginButton_Click" Margin="0,20,0,0" Width="206" Height="41" Background="#FFD69393" FontSize="18" FontFamily="Corbel">
+                            <Button Content="LOGIN" Click="LoginButton_Click" Margin="0,20,0,0" Width="197" Height="41" FontSize="18" FontFamily="Corbel" Background="{x:Null}" Foreground="Black" >
+                                <Button.BorderBrush>
+                                    <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlTextColorKey}}"/>
+                                </Button.BorderBrush>
                                 <Button.Effect>
                                     <DropShadowEffect/>
                                 </Button.Effect>
+                                <Button.BorderThickness>2</Button.BorderThickness>
                             </Button>
                         </StackPanel>
-                        <TextBlock HorizontalAlignment="Left" Height="120" Margin="156,87,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="300" FontSize="72" FontFamily="Cascadia Code" Grid.Column="1"><Run Language="pl-pl" Text="InstaPG"/></TextBlock>
+                        <Image x:Name="LoginLogo" Source="/img/logo.png" HorizontalAlignment="Left" Height="117" Margin="173,10,0,0" VerticalAlignment="Top" Width="501" Grid.Column="1" Grid.ColumnSpan="2"/>
                     </Grid>
                 </Grid>
             </TabItem>
 
             <TabItem Header="Register" x:Name="RegistrationTab">
+                <TabItem.Background>
+                    <LinearGradientBrush EndPoint="0,1">
+                        <GradientStop Color="#FFF0F0F0"/>
+                        <GradientStop Color="White" Offset="1"/>
+                    </LinearGradientBrush>
+                </TabItem.Background>
                 <Grid>
-                    <Grid>
-                        <TextBlock HorizontalAlignment="Center" Height="120" Margin="0,27,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="300" FontSize="72" FontFamily="Cascadia Code"><Run Language="pl-pl" Text="InstaPG"/></TextBlock>
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="17*"/>
+                            <ColumnDefinition Width="727*"/>
+                        </Grid.ColumnDefinitions>
 
-                        <StackPanel Margin="20,124,20,69">
+                        <StackPanel Margin="3,145,20,67" Grid.Column="1">
                             <TextBlock Width="196" FontFamily="Corbel" FontSize="16"><Run Language="pl-pl" Text="NAME"/></TextBlock>
                             <TextBox x:Name="NewUserName" Width="197" Margin="0,5">
                                 <TextBox.Effect>
@@ -97,38 +98,54 @@
                                 </PasswordBox.Effect>
                             </PasswordBox>
                             <TextBlock Margin="0,10,0,0" Width="197" FontFamily="Corbel" FontSize="16"><Run Language="pl-pl" Text="DESCRIPTION"/></TextBlock>
-                            <TextBox x:Name="NewUserDescription" Width="197" Height="81" Margin="0,5">
+                            <TextBox x:Name="NewUserDescription" Width="196" Height="46" Margin="0,5">
                                 <TextBox.Effect>
                                     <DropShadowEffect/>
                                 </TextBox.Effect>
                             </TextBox>
                         </StackPanel>
+                        <Image x:Name="RegisterLogo" Source="/img/logo.png" HorizontalAlignment="Left" Height="117" Margin="222,10,0,0" VerticalAlignment="Top" Width="501" Grid.Column="1"/>
                     </Grid>
-                    <Button Content="Register" Click="RegisterButton_Click" Height="36" FontWeight="Bold" FontFamily="Corbel" FontSize="16" Background="#FFD69393" Margin="0,543,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="196">
+                    <Button Content="REGISTER" Click="RegisterButton_Click" Height="36" FontFamily="Corbel" FontSize="16" Margin="0,540,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Width="196" RenderTransformOrigin="20,0" Background="{x:Null}" Foreground="Black">
                         <Button.Effect>
                             <DropShadowEffect/>
                         </Button.Effect>
+                        <Button.BorderBrush>
+                            <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlTextColorKey}}"/>
+                        </Button.BorderBrush>
+                        <Button.BorderThickness>2</Button.BorderThickness>
+
                     </Button>
                 </Grid>
             </TabItem>
 
             <TabItem Header="Main" x:Name="MainTab">
-                <Grid Background="White">
+                <TabItem.Background>
+                    <LinearGradientBrush EndPoint="0,1">
+                        <GradientStop Color="White"/>
+                        <GradientStop Color="#FFE5E5E5" Offset="1"/>
+                    </LinearGradientBrush>
+                </TabItem.Background>
+                <Grid>
+                    <Grid.Background>
+                        <ImageBrush ImageSource="/img/main.jpg"/>
+                    </Grid.Background>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Width="185" Background="#FFE8E8E8">
-                        <Label x:Name="AppName" Content="InstaPG" Height="59" Width="123" Foreground="#FF3776A7" FontFamily="Cascadia Code" FontSize="24"/>
-                        <ListBox x:Name="UsersList" Height="480" Width="182" FontFamily="Candara" SelectionChanged="OtherUserSelect_Click" Background="#FFE8E8E8">
-                        </ListBox>
-                        <Image x:Name="LogoutButton" Height="49" Source="/img/logout.png" Stretch="Fill" Width="56" HorizontalAlignment="Left" MouseUp="LogoutButton_Click"/>
+                    <StackPanel Grid.Column="0" Width="185">
+                        <StackPanel.Background>
+                            <ImageBrush ImageSource="/img/main.jpg"/>
+                        </StackPanel.Background>
+                        <Image x:Name="MainLogo" Source="/img/logo.png" Height="78" Width="419"/>
+                        <ListBox x:Name="UsersList" Height="505" Width="182" FontFamily="Candara" SelectionChanged="OtherUserSelect_Click" Background="Gainsboro" Margin="8,0,0,0" Opacity="0.55"/>
                     </StackPanel>
 
                     <!-- User info panel -->
-                    <Grid Grid.Column="1" HorizontalAlignment="Left" Height="605" VerticalAlignment="Top" Width="491">
-                        <Border BorderBrush="#FFD4D4D4" BorderThickness="1" Margin="10" Padding="10">
+                    <Grid Grid.Column="1" HorizontalAlignment="Center" Height="605" VerticalAlignment="Center" Width="559">
+                        <Border BorderThickness="1" Margin="10,10,0,71" Padding="10">
                             <StackPanel>
                                 <TextBlock Name="CurrentUserName" Text="User name" FontWeight="Bold" FontSize="18" Width="181" HorizontalAlignment="Left"/>
                                 <TextBlock Name="CurrentUserDescription" Text="User description" Foreground="#808080" Width="207" HorizontalAlignment="Left"/>
@@ -136,18 +153,22 @@
                                     <TextBlock Text="Posts amount: " FontSize="14"/>
                                     <TextBlock Name="CurrentAmountPost" Text="0" FontWeight="Bold" FontSize="14"/>
                                 </StackPanel>
-                                <Button Content="Add photo" Click="AddPhotoButton_Click" HorizontalAlignment="Left" Margin="0,10,0,0" Height="32" Width="92" RenderTransformOrigin="0.457,0.454"/>
+                                <Button Content="Add post" Click="AddPhotoButton_Click" HorizontalAlignment="Left" Margin="0,10,0,0" Height="32" Width="92" RenderTransformOrigin="0.457,0.454" Background="Gainsboro" FontFamily="Corbel" FontSize="14">
+                                    <Button.Effect>
+                                        <DropShadowEffect/>
+                                    </Button.Effect>
+                                </Button>
                             </StackPanel>
+
                         </Border>
+                        <Image x:Name="LogoutButton" Height="49" Source="/img/logout.png" Stretch="Fill" Width="56" HorizontalAlignment="Left" MouseUp="LogoutButton_Click" Margin="494,546,0,10"/>
 
                         <!-- Avatar -->
-                        <Border x:Name="AddPhoto" Grid.Column="1" BorderThickness="1" Margin="10" Padding="10" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Image x:Name="UserAvatar" Source="/img/default_user_avatar.png" RenderTransformOrigin="1.845,-1.865" Margin="275,-7,29,456"/>
-                        </Border>
+                        <Image x:Name="UserAvatar" Source="/img/default_user_avatar.png" RenderTransformOrigin="1.845,-1.865" Margin="337,20,47,453"/>
 
                         <!-- User Gallery -->
-                        <ScrollViewer Margin="10,165,10,10" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <ItemsControl x:Name="UserGallery" Background="#FFF3F3F3">
+                        <ScrollViewer Margin="62,175,56,71" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden">
+                            <ItemsControl x:Name="UserGallery" Background="Gainsboro" Width="420" Height="683" Opacity="0.55">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel/>
@@ -155,7 +176,7 @@
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
                         </ScrollViewer>
-                        <Button x:Name="AddAvatar" Content="+"  Click="AddAvatarButton_Click" HorizontalAlignment="Left" Height="17" Margin="442,19,0,0" VerticalAlignment="Top" Width="20" Background="White" BorderBrush="#FFF1E7E7" Foreground="#FF132AEA" FontWeight="Bold" FontFamily="Arial Rounded MT Bold"/>
+                        <Button x:Name="AddAvatar" Content="+"  Click="AddAvatarButton_Click" HorizontalAlignment="Left" Height="17" Margin="512,22,0,0" VerticalAlignment="Top" Width="20" Background="White" BorderBrush="#FFF1E7E7" Foreground="Black" FontWeight="Bold" FontFamily="Arial Rounded MT Bold"/>
                     </Grid>
                 </Grid>
             </TabItem>
