@@ -6,12 +6,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using InstaPGClient.ActiveUsersServiceReference;
 
 namespace InstaPGClient
 {
     public partial class MainWindow : Window
     {
         private InstaPGServiceClient client;
+        private ActiveUsersServiceClient activeUsersClient;
         private SQLiteHelper GlobalSQLHelper = new SQLiteHelper();
         private List<User> users = new List<User>(); // Store here the other users Objects ( all from db or from current session )
         public int CurrentUserId { get; set; }
@@ -21,11 +25,13 @@ namespace InstaPGClient
             InitializeComponent();
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
             client = new InstaPGServiceClient();
-            if(!client.isLogin())
+            activeUsersClient = new ActiveUsersServiceClient();
+            if (!client.isLogin())
             {
                 MainTab.Visibility = Visibility.Collapsed;
             }
         }
+        
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             if (!GlobalSQLHelper.IsUsernameExists(NewUserLogin.Text))
@@ -72,16 +78,20 @@ namespace InstaPGClient
                 int currentPostCount = userImages.Count;
                 CurrentAmountPost.Text = currentPostCount.ToString();
 
-                users = GlobalSQLHelper.GetAllUsersFromDb();
-                foreach (User user in users)
-                {
-                    UsersList.Items.Add(user.FirstName);
-                }
+                // TEMP CHANGES TO ALL ADD USERS TO USERS LIST FROM DB - MICHAL
+                // users = GlobalSQLHelper.GetAllUsersFromDb();
+                // foreach (User user in users)
+                // {
+                //     UsersList.Items.Add(user.FirstName);
+                // }
 
                 MainTab.Visibility = Visibility.Visible;
                 TabControl.SelectedItem = MainTab;
                 RegistrationTab.Visibility = Visibility.Collapsed;
                 LoginTab.Visibility = Visibility.Collapsed;
+
+                activeUsersClient.AddActiveUser(LoginUser.Text);
+                UpdateActiveUsersList();
             }
             else
             {
@@ -93,6 +103,8 @@ namespace InstaPGClient
         {
             try
             {
+                string result = client.GetData(0);
+                activeUsersClient.RemoveActiveUser(client.CurrentUserData["pseudonim"].ToString());
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();
                 LoginTab.Visibility = Visibility.Visible;
@@ -288,6 +300,23 @@ namespace InstaPGClient
             CurrentAmountPost.Text = "0";
             UserGallery.Items.Clear();
             UserAvatar.Source = new BitmapImage(new Uri("img/default_user_avatar.png", UriKind.Relative));
+        }
+        
+        private void UpdateActiveUsersList()
+        {
+            try
+            {
+                List<string> activeUsers = activeUsersClient.GetActiveUsers().ToList();
+                UsersList.Items.Clear();
+                foreach (var user in activeUsers)
+                {
+                    UsersList.Items.Add(user);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 }
