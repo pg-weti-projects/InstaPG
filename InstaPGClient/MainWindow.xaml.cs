@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace InstaPGClient
@@ -56,19 +57,38 @@ namespace InstaPGClient
                 client.CurrentUserData = GlobalSQLHelper.GetUserData(CurrentUserId);
                 CurrentUserName.Text = client.getUserName() + " " + client.getUserSurname();
                 CurrentUserDescription.Text = client.getUserDescription() + "\nAge: " + client.getUserAge();
-                List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
+                List<Dictionary<string, object>> userImages = GlobalSQLHelper.GetUserImagesObjects(CurrentUserId);
                 UserGallery.Items.Clear();
-                foreach (var image in userImages)
+
+                foreach (var dict in userImages)
                 {
-                    Image newImage = new Image
+                    if (dict.TryGetValue("BitmapImage", out object bitmapValue) && dict.TryGetValue("postID", out object postIdValue))
                     {
-                        Source = image,
-                        Width = 126,
-                        Height = 115,
-                        Margin = new Thickness(5)
-                    };
-                    UserGallery.Items.Add(newImage);
+                        if (bitmapValue is BitmapImage bitmap && postIdValue is int postId)
+                        {
+                            Image newImage = new Image
+                            {
+                                Source = bitmap,
+                                Width = 126,
+                                Height = 115,
+                                Margin = new Thickness(5),
+                            };
+
+                            newImage.MouseLeftButtonUp += (s, args) =>
+                            {
+                                Dictionary<string, object> postData =
+                                    GlobalSQLHelper.GetPostDataBasedOnUserAndPostID(CurrentUserId, postId);
+
+                                var displayPostWindow = new DisplayPostWindow((BitmapImage)postData["image"],
+                                    (string)postData["description"], (DateTime)postData["date"]);
+                                displayPostWindow.Show();
+                            };
+
+                            UserGallery.Items.Add(newImage);
+                        }
+                    }
                 }
+
                 int currentPostCount = userImages.Count;
                 CurrentAmountPost.Text = currentPostCount.ToString();
 
@@ -168,59 +188,6 @@ namespace InstaPGClient
             }
         }
 
-        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (TabControl.SelectedIndex == 2)
-            {
-                if (CurrentUserId == -1)
-                {
-                    ShowDefaultView();
-                }
-                else
-                {
-                    try
-                    {
-                        CreateOrUpdateAvatarColumn();
-
-                        var userData = GlobalSQLHelper.GetUserData(CurrentUserId);
-                        CurrentUserName.Text = userData["name"] + " " + userData["surname"];
-                        CurrentUserDescription.Text = CurrentUserDescription.Text = client.getUserDescription() + "\nAge: " + client.getUserAge();
-
-                        List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
-                        UserGallery.Items.Clear();
-                        foreach (var image in userImages)
-                        {
-                            Image newImage = new Image
-                            {
-                                Source = image,
-                                Width = 126,
-                                Height = 115,
-                                Margin = new Thickness(5)
-                            };
-                            UserGallery.Items.Add(newImage);
-                        }
-                        int currentPostCount = userImages.Count;
-                        CurrentAmountPost.Text = currentPostCount.ToString();
-
-                        BitmapImage avatarImage = GlobalSQLHelper.GetUserAvatar(CurrentUserId);
-                        if (avatarImage != null)
-                        {
-                            UserAvatar.Source = avatarImage;
-                        }
-                        else
-                        {
-                            UserAvatar.Source = new BitmapImage(new Uri("img/default_user_avatar.png", UriKind.Relative));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        ShowDefaultView();
-                    }
-                }
-            }
-        }
-
         private string GetPassword(PasswordBox passwordBox)
         {
             System.Security.SecureString securePassword = passwordBox.SecurePassword;
@@ -229,14 +196,6 @@ namespace InstaPGClient
             System.Runtime.InteropServices.Marshal.ZeroFreeBSTR(ptr);
 
             return plainPassword;
-        }
-
-        /// <summary>
-        /// TODO For the future display post implementation 
-        /// </summary>
-        private int GetCurrentUserId()
-        {
-            return ((MainWindow)Application.Current.MainWindow).CurrentUserId;
         }
 
         private void HandlePhotoAdded(byte[] imageData, string description)
@@ -255,6 +214,12 @@ namespace InstaPGClient
                     Height = 115,
                     Margin = new Thickness(5)
                 };
+                
+                newImage.MouseLeftButtonUp += (s, args) =>
+                {
+                    var displayPostWindow = new DisplayPostWindow(bitmap, description, DateTime.Now);
+                    displayPostWindow.Show();
+                };
 
                 UserGallery.Items.Add(newImage);
                 List<BitmapImage> images = new List<BitmapImage> { bitmap };
@@ -271,23 +236,6 @@ namespace InstaPGClient
             {
                 MessageBox.Show("An unexpected error occurred: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private void CreateOrUpdateAvatarColumn()
-        {
-            if (!GlobalSQLHelper.IsColumnExists("Users", "avatar"))
-            {
-                GlobalSQLHelper.AddAvatarColumnToUsersTable();
-            }
-        }
-
-        private void ShowDefaultView()
-        {
-            CurrentUserName.Text = "User name";
-            CurrentUserDescription.Text = "Description";
-            CurrentAmountPost.Text = "0";
-            UserGallery.Items.Clear();
-            UserAvatar.Source = new BitmapImage(new Uri("img/default_user_avatar.png", UriKind.Relative));
         }
     }
 }
