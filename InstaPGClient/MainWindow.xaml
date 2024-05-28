@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="InstaPG" Height="650" Width="750"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        Icon="/img/app_icon.png">
     <Window.Background>
         <ImageBrush ImageSource="/img/background-new.jpg"/>
     </Window.Background>
@@ -140,7 +141,7 @@
                             <ImageBrush ImageSource="/img/main.jpg"/>
                         </StackPanel.Background>
                         <Image x:Name="MainLogo" Source="/img/logo.png" Height="78" Width="419"/>
-                        <ListBox x:Name="UsersList" Height="505" Width="182" FontFamily="Candara" SelectionChanged="OtherUserSelect_Click" Background="Gainsboro" Margin="8,0,0,0" Opacity="0.55"/>
+                        <ListBox x:Name="UsersList" Height="505" Width="182" FontFamily="Candara" SelectionChanged="OtherUserSelect_Click" Background="Gainsboro" Margin="8,0,0,0" Opacity="0.95"/>
                     </StackPanel>
 
                     <!-- User info panel -->
@@ -168,7 +169,7 @@
 
                         <!-- User Gallery -->
                         <ScrollViewer Margin="62,175,56,71" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Hidden">
-                            <ItemsControl x:Name="UserGallery" Background="Gainsboro" Width="420" Height="683" Opacity="0.55">
+                            <ItemsControl x:Name="UserGallery" Background="Gainsboro" Width="420" Height="683" Opacity="0.95">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <WrapPanel/>
@@ -176,7 +177,7 @@
                                 </ItemsControl.ItemsPanel>
                             </ItemsControl>
                         </ScrollViewer>
-                        <Button x:Name="AddAvatar" Content="+"  Click="AddAvatarButton_Click" HorizontalAlignment="Left" Height="17" Margin="512,22,0,0" VerticalAlignment="Top" Width="20" Background="White" BorderBrush="#FFF1E7E7" Foreground="Black" FontWeight="Bold" FontFamily="Arial Rounded MT Bold"/>
+                        <Button x:Name="AddAvatar" Content="+"  Click="AddAvatarButton_Click" HorizontalAlignment="Left" Height="17" Margin="512,27,0,0" VerticalAlignment="Top" Width="20" Background="White" BorderBrush="#FFF1E7E7" Foreground="Black" FontWeight="Bold" FontFamily="Arial Rounded MT Bold"/>
                     </Grid>
                 </Grid>
             </TabItem>
