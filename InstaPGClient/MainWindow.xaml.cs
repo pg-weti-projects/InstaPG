@@ -104,7 +104,6 @@ namespace InstaPGClient
         {
             try
             {
-                string result = client.GetData(0);
                 activeUsersClient.RemoveActiveUser(client.CurrentUserData["pseudonim"].ToString());
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();

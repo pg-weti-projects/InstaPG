@@ -3,9 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstaPGService", "InstaPGService.csproj", "{12A6FC23-F220-4C98-A18C-8739533B9A81}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstaPGClient", "..\InstaPGClient\InstaPGClient.csproj", "{84D0B088-69CD-4754-883D-5DBCE36A7506}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InstaPGClient", "InstaPGClient.csproj", "{84D0B088-69CD-4754-883D-5DBCE36A7506}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
