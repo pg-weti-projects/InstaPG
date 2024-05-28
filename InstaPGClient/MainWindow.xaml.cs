@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using InstaPGClient.ActiveUsersServiceReference;
 
 namespace InstaPGClient
 {
@@ -24,6 +25,7 @@ namespace InstaPGClient
     {
         private Random random = new Random();
         private InstaPGServiceClient client;
+        private ActiveUsersServiceClient activeUsersClient;
         private SQLiteHelper GlobalSQLHelper = new SQLiteHelper();
         private List<User> users = new List<User>(); // przechowujmy tutaj uzytkownikow ktorych wykryjemy po zalogowaniu sie
         public int CurrentUserId { get; set; }
@@ -32,7 +34,8 @@ namespace InstaPGClient
         {
             InitializeComponent();
             client = new InstaPGServiceClient();
-            if(!client.isLogin())
+            activeUsersClient = new ActiveUsersServiceClient();
+            if (!client.isLogin())
             {
                 //Ukryj ekran główny aplikacji
                 MainTab.Visibility = Visibility.Collapsed;
@@ -90,6 +93,9 @@ namespace InstaPGClient
                 TabControl.SelectedItem = MainTab;
                 RegistrationTab.Visibility = Visibility.Collapsed;
                 LoginTab.Visibility = Visibility.Collapsed;
+
+                activeUsersClient.AddActiveUser(LoginUser.Text);
+                UpdateActiveUsersList();
             }
             else
             {
@@ -114,6 +120,8 @@ namespace InstaPGClient
         {
             try
             {
+                string result = client.GetData(0);
+                activeUsersClient.RemoveActiveUser(client.CurrentUserData["pseudonim"].ToString());
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();
                 LoginTab.Visibility = Visibility.Visible;
@@ -332,6 +340,23 @@ namespace InstaPGClient
         private void users_SelectionChanged(object sender , RoutedEventArgs e)
         {
             throw new NotImplementedException();
+        }
+
+        private void UpdateActiveUsersList()
+        {
+            try
+            {
+                List<string> activeUsers = activeUsersClient.GetActiveUsers().ToList();
+                UsersList.Items.Clear();
+                foreach (var user in activeUsers)
+                {
+                    UsersList.Items.Add(user);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
