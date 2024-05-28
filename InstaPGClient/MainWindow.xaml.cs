@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using InstaPGClient.ActiveUsersServiceReference;
+using System.Linq;
 
 namespace InstaPGClient
 {
@@ -78,12 +79,12 @@ namespace InstaPGClient
                 int currentPostCount = userImages.Count;
                 CurrentAmountPost.Text = currentPostCount.ToString();
 
-                // TEMP CHANGES TO ALL ADD USERS TO USERS LIST FROM DB - MICHAL
-                // users = GlobalSQLHelper.GetAllUsersFromDb();
-                // foreach (User user in users)
-                // {
-                //     UsersList.Items.Add(user.FirstName);
-                // }
+                 //TEMP CHANGES TO ALL ADD USERS TO USERS LIST FROM DB - MICHAL
+                 // users = GlobalSQLHelper.GetAllUsersFromDb();
+                 // foreach (User user in users)
+                 // {
+                 //     UsersList.Items.Add(user.FirstName);
+                 // }
 
                 MainTab.Visibility = Visibility.Visible;
                 TabControl.SelectedItem = MainTab;
@@ -310,6 +311,7 @@ namespace InstaPGClient
                 UsersList.Items.Clear();
                 foreach (var user in activeUsers)
                 {
+                    users.Add(GlobalSQLHelper.GetUserDataByHisName(user));
                     UsersList.Items.Add(user);
                 }
             }
