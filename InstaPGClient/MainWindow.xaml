@@ -55,7 +55,7 @@
 
                     <StackPanel Grid.Column="0" Width="185" Background="#FFE8E8E8">
                         <Label x:Name="AppName" Content="InstaPG" Height="59" Width="123" Foreground="#FF3776A7" FontFamily="Cascadia Code" FontSize="24"/>
-                        <ListBox x:Name="UsersList" Height="480" Width="182" FontFamily="Candara" SelectionChanged="users_SelectionChanged" Background="#FFE8E8E8">
+                        <ListBox x:Name="UsersList" Height="480" Width="182" FontFamily="Candara" Background="#FFE8E8E8">
                         </ListBox>
                         <Image x:Name="LogoutButton" Height="49" Source="/logout.png" Stretch="Fill" Width="56" HorizontalAlignment="Left" MouseUp="LogoutButton_Click"/>
                     </StackPanel>
