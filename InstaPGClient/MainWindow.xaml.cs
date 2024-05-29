@@ -80,7 +80,7 @@ namespace InstaPGClient
                                     GlobalSQLHelper.GetPostDataBasedOnUserAndPostID(CurrentUserId, postId);
 
                                 var displayPostWindow = new DisplayPostWindow((BitmapImage)postData["image"],
-                                    (string)postData["description"], (DateTime)postData["date"]);
+                                    (string)postData["description"], (DateTime)postData["date"], postId, CurrentUserId);
                                 displayPostWindow.Show();
                             };
 
@@ -214,17 +214,17 @@ namespace InstaPGClient
                     Height = 115,
                     Margin = new Thickness(5)
                 };
-                
-                newImage.MouseLeftButtonUp += (s, args) =>
-                {
-                    var displayPostWindow = new DisplayPostWindow(bitmap, description, DateTime.Now);
-                    displayPostWindow.Show();
-                };
 
                 UserGallery.Items.Add(newImage);
                 List<BitmapImage> images = new List<BitmapImage> { bitmap };
 
-                GlobalSQLHelper.InsertPost(CurrentUserId, description, images);
+                int postId = GlobalSQLHelper.InsertPost(CurrentUserId, description, images);
+                 
+                newImage.MouseLeftButtonUp += (s, args) =>
+                {
+                    var displayPostWindow = new DisplayPostWindow(bitmap, description, DateTime.Now, postId, CurrentUserId);
+                    displayPostWindow.Show();
+                };
 
                 
                 List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
