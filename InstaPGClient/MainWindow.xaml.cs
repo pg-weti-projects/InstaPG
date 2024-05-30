@@ -2,55 +2,50 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using InstaPGClient.ActiveUsersServiceReference;
+using System.Linq;
 
 namespace InstaPGClient
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        private Random random = new Random();
         private InstaPGServiceClient client;
         private ActiveUsersServiceClient activeUsersClient;
         private SQLiteHelper GlobalSQLHelper = new SQLiteHelper();
-        private List<User> users = new List<User>(); // przechowujmy tutaj uzytkownikow ktorych wykryjemy po zalogowaniu sie
+        private List<User> users = new List<User>(); // Store here the other users Objects ( all from db or from current session )
         public int CurrentUserId { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
             client = new InstaPGServiceClient();
             activeUsersClient = new ActiveUsersServiceClient();
             if (!client.isLogin())
             {
-                //Ukryj ekran główny aplikacji
                 MainTab.Visibility = Visibility.Collapsed;
             }
         }
-
+        
+        /// <summary>
+        /// Handle register button.
+        /// </summary>
         private void RegisterButton_Click(object sender, RoutedEventArgs e)
         {
             if (!GlobalSQLHelper.IsUsernameExists(NewUserLogin.Text))
             {
                 GlobalSQLHelper.RegisterUser(NewUserLogin.Text, this.GetPassword(NewUserPasswordBox), NewUserName.Text, NewUserSurname.Text, Convert.ToInt32(NewUserAge.Text), NewUserDescription.Text);
                 MessageBox.Show("New account has been created! Login: " + NewUserLogin.Text, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-                NewUserLogin.Text = "";
-                NewUserName.Text = "";
                 NewUserSurname.Text = "";
+                NewUserName.Text = "";
+                NewUserLogin.Text = "";
+                NewUserAge.Text = "";
                 NewUserDescription.Text = "";
                 NewUserPasswordBox.Password = "";
             }
@@ -59,21 +54,21 @@ namespace InstaPGClient
 
         }
 
+        /// <summary>
+        /// Handle login button.
+        /// </summary>
         private void LoginButton_Click(object sender, RoutedEventArgs e)
         {
             string username = LoginUser.Text;
             string password = LoginPassword.Password;
 
-            SQLiteHelper db = new SQLiteHelper();
-            if (db.AuthenticateUser(username, password))
+            if (GlobalSQLHelper.AuthenticateUser(username, password))
             {
-                CurrentUserId = db.GetUserIdByLogin(username);
-                MessageBox.Show("Welcome!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                client.CurrentUserData = db.GetUserData(CurrentUserId);
+                CurrentUserId = GlobalSQLHelper.GetUserIdByLogin(username);
+                client.CurrentUserData = GlobalSQLHelper.GetUserData(CurrentUserId);
                 CurrentUserName.Text = client.getUserName() + " " + client.getUserSurname();
                 CurrentUserDescription.Text = client.getUserDescription() + "\nAge: " + client.getUserAge();
-                List<BitmapImage> userImages = db.GetUserImages(CurrentUserId);
+                List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
                 UserGallery.Items.Clear();
                 foreach (var image in userImages)
                 {
@@ -89,6 +84,16 @@ namespace InstaPGClient
                 int currentPostCount = userImages.Count;
                 CurrentAmountPost.Text = currentPostCount.ToString();
 
+                BitmapImage avatarImage = GlobalSQLHelper.GetUserAvatar(CurrentUserId);
+                if (avatarImage != null)
+                {
+                    UserAvatar.Source = avatarImage;
+                }
+                else
+                {
+                    UserAvatar.Source = new BitmapImage(new Uri("img/default_user_avatar.png", UriKind.Relative));
+                }
+
                 MainTab.Visibility = Visibility.Visible;
                 TabControl.SelectedItem = MainTab;
                 RegistrationTab.Visibility = Visibility.Collapsed;
@@ -102,26 +107,16 @@ namespace InstaPGClient
                 MessageBox.Show("Wrong user name or password!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        private string GetPassword(PasswordBox passwordBox)
-        {
-            // Pobierz wprowadzone hasło jako SecureString
-            System.Security.SecureString securePassword = passwordBox.SecurePassword;
-
-            // Konwertuj SecureString na String
-            IntPtr ptr = System.Runtime.InteropServices.Marshal.SecureStringToBSTR(securePassword);
-            string plainPassword = System.Runtime.InteropServices.Marshal.PtrToStringBSTR(ptr);
-            System.Runtime.InteropServices.Marshal.ZeroFreeBSTR(ptr);
-
-            return plainPassword;
-        }
-
+        
+        /// <summary>
+        /// Handle logout operation by setting user logged flag to false, clean current logged user data and users list
+        /// and set visibility of the login and register tabs.
+        /// </summary>
         private void LogoutButton_Click(object sender, MouseButtonEventArgs e)
         {
             try
             {
-                string result = client.GetData(0);
-                activeUsersClient.RemoveActiveUser(client.CurrentUserData["pseudonim"].ToString());
+                // activeUsersClient.RemoveActiveUser(client.CurrentUserData["pseudonim"].ToString()); TODO: fix this ( does not work if you click on the logout button )
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();
                 LoginTab.Visibility = Visibility.Visible;
@@ -131,15 +126,15 @@ namespace InstaPGClient
                 MessageBox.Show("User has been log out.", "Log out", MessageBoxButton.OK, MessageBoxImage.Information);
                 users.Clear();
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show("An error occurred during attempt to logout: " + exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            //client.Close();
         }
-
-
+        
+        /// <summary>
+        /// Handler add avatar button.
+        /// </summary>
         private void AddAvatarButton_Click(object sender, RoutedEventArgs e)
         {
             if (CurrentUserId != -1)
@@ -173,43 +168,10 @@ namespace InstaPGClient
                 }
             }
         }
-
-        private void SaveAvatarButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (UserAvatar.Source != null && CurrentUserId != -1)
-            {
-                try
-                {
-                    byte[] avatarData;
-                    BitmapImage bitmapImage = (BitmapImage)UserAvatar.Source;
-                    JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(bitmapImage));
-
-                    using (MemoryStream memoryStream = new MemoryStream())
-                    {
-                        encoder.Save(memoryStream);
-                        avatarData = memoryStream.ToArray();
-                    }
-                    GlobalSQLHelper.SaveUserAvatar(CurrentUserId, avatarData);
-
-                    MessageBox.Show("Avatar has been saved.", "Sukces", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("An unexpected error occurred: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            else
-            {
-                MessageBox.Show("No avatar selected or no user logged in.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private int GetCurrentUserId()
-        {
-            return ((MainWindow)Application.Current.MainWindow).CurrentUserId;
-        }
-
+        
+        /// <summary>
+        /// Handle adding photo button.
+        /// </summary>
         private void AddPhotoButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -223,8 +185,47 @@ namespace InstaPGClient
                 MessageBox.Show("An unexpected error occurred: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        
+        /// <summary>
+        /// Handle displaying other user profile after clicking on the user in UsersList ListBox.
+        /// </summary>
+        private void OtherUserSelect_Click(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                User chosenUser = users.FirstOrDefault(u => u.UserName == UsersList.SelectedItem.ToString());
+                if (chosenUser != null)
+                {
+                    List<BitmapImage> chosenUserImages = GlobalSQLHelper.GetUserImages(chosenUser.UserId);
+                    BitmapImage chosenUserAvatarImage = GlobalSQLHelper.GetUserAvatar(chosenUser.UserId);
+                    OtherUserProfileWindow userProfileWindow = new OtherUserProfileWindow(chosenUser, chosenUserImages, chosenUserAvatarImage);
+                    userProfileWindow.Show();
+                }
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show("Error occurred during attempt to select user from ListBox: " + 
+                                exception.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
+        /// <summary>
+        /// Decrypts the password from the password box
+        /// </summary>
+        private string GetPassword(PasswordBox passwordBox)
+        {
+            System.Security.SecureString securePassword = passwordBox.SecurePassword;
+            IntPtr ptr = System.Runtime.InteropServices.Marshal.SecureStringToBSTR(securePassword);
+            string plainPassword = System.Runtime.InteropServices.Marshal.PtrToStringBSTR(ptr);
+            System.Runtime.InteropServices.Marshal.ZeroFreeBSTR(ptr);
 
+            return plainPassword;
+        }
+
+        /// <summary>
+        /// If the user click add photo button it will be converted to Image and added to DB with assigning to user
+        /// that added this photo. Post indicator will be increased.
+        /// </summary>
         private void HandlePhotoAdded(byte[] imageData, string description)
         {
             try
@@ -249,8 +250,7 @@ namespace InstaPGClient
 
                 
                 List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
-                int currentPostCount = userImages.Count;
-                CurrentAmountPost.Text = currentPostCount.ToString();
+                CurrentAmountPost.Text = userImages.Count.ToString();
 
                 MessageBox.Show("Photo added successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -260,108 +260,25 @@ namespace InstaPGClient
             }
         }
 
-        private void CreateOrUpdateAvatarColumn()
-        {
-            if (!GlobalSQLHelper.IsColumnExists("Users", "avatar"))
-            {
-                GlobalSQLHelper.AddAvatarColumnToUsersTable();
-            }
-        }
-
-        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (TabControl.SelectedIndex == 2)
-            {
-                if (CurrentUserId == -1)
-                {
-                    ShowDefaultView();
-                }
-                else
-                {
-                    try
-                    {
-                        CreateOrUpdateAvatarColumn();
-
-                        var userData = GlobalSQLHelper.GetUserData(CurrentUserId);
-                        CurrentUserName.Text = userData["name"].ToString() + " " + userData["surname"].ToString();
-                        CurrentUserDescription.Text = CurrentUserDescription.Text = client.getUserDescription() + "\nAge: " + client.getUserAge();
-
-
-                        List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
-                        UserGallery.Items.Clear();
-                        foreach (var image in userImages)
-                        {
-                            Image newImage = new Image
-                            {
-                                Source = image,
-                                Width = 126,
-                                Height = 115,
-                                Margin = new Thickness(5)
-                            };
-                            UserGallery.Items.Add(newImage);
-                        }
-                        int currentPostCount = userImages.Count;
-                        CurrentAmountPost.Text = currentPostCount.ToString();
-
-                        var avatarImage = GlobalSQLHelper.GetUserAvatar(CurrentUserId);
-                        if (avatarImage != null)
-                        {
-                            BitmapImage bitmap = new BitmapImage();
-                            bitmap.BeginInit();
-                            bitmap.StreamSource = new MemoryStream(avatarImage);
-                            bitmap.EndInit();
-                            UserAvatar.Source = bitmap;
-                        }
-                        else
-                        {
-                            UserAvatar.Source = new BitmapImage(new Uri("user_avatar.png", UriKind.Relative));
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("An unexpected error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        ShowDefaultView();
-                    }
-                }
-            }
-        }
-
-
-        private void ShowDefaultView()
-        {
-            CurrentUserName.Text = "User name";
-            CurrentUserDescription.Text = "Description";
-            CurrentAmountPost.Text = "0";
-            UserGallery.Items.Clear();
-            UserAvatar.Source = new BitmapImage(new Uri("user_avatar.png", UriKind.Relative));
-        }
-
-
-        private void users_SelectionChanged(object sender , RoutedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
+        /// <summary>
+        /// Updates the list of the active users in the UsersList ListBox and users List.
+        /// </summary>
         private void UpdateActiveUsersList()
         {
             try
             {
                 List<string> activeUsers = activeUsersClient.GetActiveUsers().ToList();
                 UsersList.Items.Clear();
-                foreach (var user in activeUsers)
+                foreach (var userName in activeUsers)
                 {
-                    UsersList.Items.Add(user);
+                    users.Add(GlobalSQLHelper.GetUserDataByHisUserName(userName));
+                    UsersList.Items.Add(userName);
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-
         }
     }
 }
