@@ -69,7 +69,7 @@ public class SQLiteHelper
                                               "description TEXT, " +
                                               "login TEXT, " +
                                               "pass_hash TEXT, " +
-                                              "avatar BLOB)"; // Dodaj kolumnę "avatar" jako typ BLOB
+                                              "avatar BLOB)";
                         command.ExecuteNonQuery();
 
                         // Tabela Posts
@@ -84,7 +84,7 @@ public class SQLiteHelper
                         command.CommandText = "CREATE TABLE Photos (photo_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                               "user_id INTEGER, " +
                                               "zdjecie BLOB, " +
-                                              "post_id INTEGER, " + // Dodaj kolumnę post_id
+                                              "post_id INTEGER, " +
                                               "FOREIGN KEY(user_id) REFERENCES Users(user_id), " +
                                               "FOREIGN KEY(post_id) REFERENCES Posts(post_id))";
                         command.ExecuteNonQuery();
@@ -181,6 +181,37 @@ public class SQLiteHelper
             }
         }
         return users;
+    }
+    
+    /// <summary>
+    /// Get user by his name
+    /// </summary>
+    public User GetUserDataByHisUserName(string userName)
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+               command.CommandText = "SELECT * FROM Users WHERE login=@userName";
+               command.Parameters.AddWithValue("@userName", userName);
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int userId = reader.GetInt32(0);
+                        string firstName = reader.GetString(1);
+                        string lastName = reader.GetString(2);
+                        int age = reader.GetInt32(3);
+                        string description = reader.GetString(4);
+                        string username = reader.GetString(5);
+                        
+                        return new User(userId, firstName, lastName, age, description, username);
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /// <summary>
