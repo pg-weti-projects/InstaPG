@@ -12,7 +12,7 @@
     </Window.Background>
     <Grid>
 
-        <TabControl x:Name="TabControl" SelectionChanged="TabControl_SelectionChanged">
+        <TabControl x:Name="TabControl">
             <TabControl.Background>
                 <ImageBrush TileMode="Tile" ImageSource="/img/background-new.jpg"/>
             </TabControl.Background>
