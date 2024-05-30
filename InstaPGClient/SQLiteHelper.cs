@@ -277,14 +277,15 @@ public class SQLiteHelper
         }
     }
 
-    public void InsertPost(int userId, string postText, List<BitmapImage> images)
+    public int InsertPost(int userId, string postText, List<BitmapImage> images)
     {
         if (!IsUserExists(userId))
         {
             Console.WriteLine("Użytkownik o podanym identyfikatorze nie istnieje.");
-            return;
+            return -1;
         }
 
+        int postId;
         using (SQLiteConnection connection = new SQLiteConnection(connectionString))
         {
             connection.Open();
@@ -302,7 +303,7 @@ public class SQLiteHelper
                     command.ExecuteNonQuery();
 
                     command.CommandText = "SELECT last_insert_rowid()";
-                    int postId = Convert.ToInt32(command.ExecuteScalar());
+                    postId = Convert.ToInt32(command.ExecuteScalar());
 
                     if (images != null && images.Count > 0)
                     {
@@ -332,7 +333,10 @@ public class SQLiteHelper
                 }
             }
         }
+
+        return postId;
     }
+
 
     public void AddAvatarColumnToUsersTable()
     {
@@ -433,7 +437,7 @@ public class SQLiteHelper
             connection.Open();
             using (SQLiteCommand command = connection.CreateCommand())
             {
-                command.CommandText = "SELECT zdjecie FROM Photos WHERE user_id=@UserId";
+                command.CommandText = "SELECT zdjecie, post_id FROM Photos WHERE user_id=@UserId";
                 command.Parameters.AddWithValue("@UserId", userId);
 
                 using (SQLiteDataReader reader = command.ExecuteReader())
@@ -456,6 +460,95 @@ public class SQLiteHelper
         }
 
         return images;
+    }
+    
+    /// <summary>
+    /// Gets all saved user images ( based on user ID ) from DB and returns BitmapImage objects list.
+    /// </summary>
+    public List<Dictionary<string, object>> GetUserImagesObjects(int userId)
+    {
+        List<Dictionary<string, object>> images = new List<Dictionary<string, object>>();
+
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT zdjecie, post_id FROM Photos WHERE user_id=@UserId";
+                command.Parameters.AddWithValue("@UserId", userId);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        byte[] imageData = (byte[])reader["zdjecie"];
+                        BitmapImage bitmap = new BitmapImage();
+                        using (MemoryStream memoryStream = new MemoryStream(imageData))
+                        {
+                            bitmap.BeginInit();
+                            bitmap.StreamSource = memoryStream;
+                            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                            bitmap.EndInit();
+                        }
+                        int postid = Convert.ToInt32(reader["post_id"]);
+
+                        Dictionary<string, object> dict = new Dictionary<string, object>();
+                        dict.Add("BitmapImage", bitmap);
+                        dict.Add("postID", postid);
+
+                        images.Add(dict);
+                    }
+                }
+            }
+        }
+        return images;
+    }
+    
+    /// <summary>
+    /// Get post data from DB (description, date and image ) based on userID and postID.
+    /// </summary>
+    public  Dictionary<string, object> GetPostDataBasedOnUserAndPostID(int userID, int postID)
+    {
+        Dictionary<string, object> postData = new Dictionary<string, object>();
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = connection.CreateCommand())
+            {
+                command.CommandText = "SELECT post_description, date, zdjecie FROM Posts INNER JOIN Photos ON Posts.post_id = Photos.post_id WHERE Photos.user_id = @UserId AND Photos.photo_id = @PhotoId";
+                command.Parameters.AddWithValue("@UserId", userID);
+                command.Parameters.AddWithValue("@PhotoId", postID);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        postData.Add("description", reader.GetString(0));
+                        postData.Add("date", reader.GetDateTime(1));
+                        postData.Add("image", LoadImageFromBytes((byte[])reader["zdjecie"]));
+                        return postData;
+
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
+    /// <summary>
+    /// Converts byte image to BitmapImage object.
+    /// </summary>
+    private BitmapImage LoadImageFromBytes(byte[] imageData)
+    {
+        BitmapImage bitmap = new BitmapImage();
+        using (MemoryStream memoryStream = new MemoryStream(imageData))
+        {
+            bitmap.BeginInit();
+            bitmap.StreamSource = memoryStream;
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+        }
+        return bitmap;
     }
 
     /// <summary>
@@ -488,6 +581,56 @@ public class SQLiteHelper
         }
         return null;
     }
+
+    public void AddCommentToDatabase(int postId, int userId, string comment)
+    {
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            using (SQLiteCommand command = new SQLiteCommand(connection))
+            {
+                command.CommandText = "INSERT INTO Comments (post_id, user_id, comment_text) VALUES (@PostId, @UserId, @Comment)";
+                command.Parameters.AddWithValue("@PostId", postId);
+                command.Parameters.AddWithValue("@UserId", userId);
+                command.Parameters.AddWithValue("@Comment", comment);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+
+
+    public List<Tuple<string, string>> GetCommentsForPost(int postId)
+    {
+        List<Tuple<string, string>> comments = new List<Tuple<string, string>>();
+
+        using (SQLiteConnection connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            using (SQLiteCommand command = new SQLiteCommand(connection))
+            {
+                command.CommandText = "SELECT Users.login, Comments.comment_text FROM Comments " +
+                                      "INNER JOIN Users ON Comments.user_id = Users.user_id " +
+                                      "WHERE Comments.post_id = @PostId";
+                command.Parameters.AddWithValue("@PostId", postId);
+
+                using (SQLiteDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        string username = reader.GetString(0);
+                        string comment = reader.GetString(1);
+                        comments.Add(new Tuple<string, string>(username, comment));
+                    }
+                }
+            }
+        }
+
+        return comments;
+    }
+
+
 
     public bool IsColumnExists(string tableName, string columnName)
     {

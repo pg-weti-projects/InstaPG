@@ -5,6 +5,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -68,19 +69,38 @@ namespace InstaPGClient
                 client.CurrentUserData = GlobalSQLHelper.GetUserData(CurrentUserId);
                 CurrentUserName.Text = client.getUserName() + " " + client.getUserSurname();
                 CurrentUserDescription.Text = client.getUserDescription() + "\nAge: " + client.getUserAge();
-                List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);
+                List<Dictionary<string, object>> userImages = GlobalSQLHelper.GetUserImagesObjects(CurrentUserId);
                 UserGallery.Items.Clear();
-                foreach (var image in userImages)
+
+                foreach (var dict in userImages)
                 {
-                    Image newImage = new Image
+                    if (dict.TryGetValue("BitmapImage", out object bitmapValue) && dict.TryGetValue("postID", out object postIdValue))
                     {
-                        Source = image,
-                        Width = 126,
-                        Height = 115,
-                        Margin = new Thickness(5)
-                    };
-                    UserGallery.Items.Add(newImage);
+                        if (bitmapValue is BitmapImage bitmap && postIdValue is int postId)
+                        {
+                            Image newImage = new Image
+                            {
+                                Source = bitmap,
+                                Width = 126,
+                                Height = 115,
+                                Margin = new Thickness(5),
+                            };
+
+                            newImage.MouseLeftButtonUp += (s, args) =>
+                            {
+                                Dictionary<string, object> postData =
+                                    GlobalSQLHelper.GetPostDataBasedOnUserAndPostID(CurrentUserId, postId);
+
+                                var displayPostWindow = new DisplayPostWindow((BitmapImage)postData["image"],
+                                    (string)postData["description"], (DateTime)postData["date"], postId, CurrentUserId);
+                                displayPostWindow.Show();
+                            };
+
+                            UserGallery.Items.Add(newImage);
+                        }
+                    }
                 }
+
                 int currentPostCount = userImages.Count;
                 CurrentAmountPost.Text = currentPostCount.ToString();
 
@@ -246,7 +266,13 @@ namespace InstaPGClient
                 UserGallery.Items.Add(newImage);
                 List<BitmapImage> images = new List<BitmapImage> { bitmap };
 
-                GlobalSQLHelper.InsertPost(CurrentUserId, description, images);
+                int postId = GlobalSQLHelper.InsertPost(CurrentUserId, description, images);
+                 
+                newImage.MouseLeftButtonUp += (s, args) =>
+                {
+                    var displayPostWindow = new DisplayPostWindow(bitmap, description, DateTime.Now, postId, CurrentUserId);
+                    displayPostWindow.Show();
+                };
 
                 
                 List<BitmapImage> userImages = GlobalSQLHelper.GetUserImages(CurrentUserId);

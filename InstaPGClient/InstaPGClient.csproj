@@ -101,6 +101,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="DisplayPostWindow.xaml.cs">
+      <DependentUpon>DisplayPostWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OtherUserProfileWindow.xaml.cs">
       <DependentUpon>OtherUserProfileWindow.xaml</DependentUpon>
     </Compile>
@@ -108,6 +111,10 @@
       <DependentUpon>PostWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="SQLiteHelper.cs" />
+    <Page Include="DisplayPostWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OtherUserProfileWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
