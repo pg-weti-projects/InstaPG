@@ -6,7 +6,8 @@
         mc:Ignorable="d"
         Title="InstaPG" Height="650" Width="750"
         ResizeMode="NoResize"
-        Icon="/img/app_icon.png">
+        Icon="/img/app_icon.png"
+        WindowStartupLocation="CenterScreen">
     <Window.Background>
         <ImageBrush ImageSource="/img/background-new.jpg"/>
     </Window.Background>

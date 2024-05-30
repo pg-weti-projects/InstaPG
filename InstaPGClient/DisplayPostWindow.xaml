@@ -5,25 +5,34 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InstaPGClient"
         mc:Ignorable="d"
-        Title="DisplayPostWindow" Height="550" Width="500">
+        Title="POST" Height="570" Width="540"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
     <Grid Margin="0,0,0,-6">
+        <Grid.Background>
+            <ImageBrush ImageSource="/img/post-background.jpg"/>
+        </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto" MinHeight="74"/>
         </Grid.RowDefinitions>
-        <TextBox x:Name="DescriptionTextBox" Margin="10,378,168,31" Grid.Row="2" IsReadOnly="True"/>
+        <TextBox x:Name="DescriptionTextBox" Margin="22,401,23,19" Grid.Row="2" IsReadOnly="True" Background="{x:Null}" BorderBrush="{x:Null}" SelectionBrush="White"/>
 
-        <Image x:Name="ImagePreview" Grid.Row="2" Margin="11,-1,170,126"/>
-        <ListBox x:Name="CommentsListBox" HorizontalAlignment="Left" Height="325" Margin="337,24,0,0" Grid.RowSpan="3" VerticalAlignment="Top" Width="153"/>
-        <TextBlock x:Name="DatePost" HorizontalAlignment="Left" Height="26" Margin="10,347,0,0" Grid.RowSpan="3" VerticalAlignment="Top" Width="126"/>
 
-        <!-- Nowy komentarz -->
-        <Grid Grid.Row="3" Margin="10,10,10,10">
+        <Image x:Name="ImagePreview" Grid.Row="2" Margin="12,40,208,123"/>
+        <ListBox x:Name="CommentsListBox" HorizontalAlignment="Left" Height="325" Margin="337,40,0,0" Grid.RowSpan="3" VerticalAlignment="Top" Width="180" Background="{x:Null}" FontFamily="Corbel"/>
+        <TextBlock x:Name="DatePost" HorizontalAlignment="Left" Height="27" Margin="75,10,0,0" Grid.RowSpan="3" VerticalAlignment="Top" Width="126"/>
+
+        <!-- New comment -->
+        <Grid Grid.Row="3" Margin="10,10,20,10">
             <TextBox x:Name="NewCommentTextBox" TextChanged="NewCommentTextBox_TextChanged"/>
-            <TextBlock x:Name="PlaceholderTextBlock" Text="Dodaj komentarz..." IsHitTestVisible="False" Foreground="Gray" VerticalAlignment="Center" Margin="5,0,0,0" Height="53"/>
+            <TextBlock x:Name="PlaceholderTextBlock" IsHitTestVisible="False" Foreground="Gray" VerticalAlignment="Center" Height="54" FontFamily="Corbel" FontSize="14" HorizontalAlignment="Left" Width="480"><Run Language="pl-pl" Text="  "/><Run Text="Add comment..."/></TextBlock>
         </Grid>
-        <Button x:Name="AddCommentButton" Content="Dodaj" Grid.Row="4" HorizontalAlignment="Right" Margin="10,10,10,10" Width="75" Click="AddCommentButton_Click"/>
+        <Button x:Name="AddCommentButton" Content="ADD" Grid.Row="3" HorizontalAlignment="Left" Margin="445,10,0,10" Width="75" Click="AddComment_Click" Background="#FFB3B3B3"/>
+        <Label Content="Comments:" HorizontalAlignment="Left" Margin="336,11,0,0" Grid.Row="2" VerticalAlignment="Top" FontFamily="Corbel" FontSize="14" Height="24" Width="77" FontWeight="Bold"/>
+        <Label Content="Post Date:" HorizontalAlignment="Left" Margin="10,5,0,0" Grid.Row="2" VerticalAlignment="Top" FontFamily="Corbel" FontSize="14" Height="24" Width="70" FontWeight="Bold"/>
+        <Label Content="Description:" HorizontalAlignment="Left" Margin="5,372,0,0" Grid.Row="2" VerticalAlignment="Top" FontFamily="Corbel" FontSize="14" Height="24" Width="80" FontWeight="Bold"/>
     </Grid>
 </Window>
