@@ -36,7 +36,7 @@ namespace InstaPGClient
             }
         }
 
-        private void AddCommentButton_Click(object sender, RoutedEventArgs e)
+        private void AddComment_Click(object sender, RoutedEventArgs e)
         {
             string newComment = NewCommentTextBox.Text;
             if (!string.IsNullOrEmpty(newComment))

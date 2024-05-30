@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="User Profile" Height="450" Width="600"
         ResizeMode="NoResize"
-        Icon="/img/app_icon.png">
+        Icon="/img/app_icon.png"
+        WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.Background>
             <ImageBrush ImageSource="/img/main.jpg"/>

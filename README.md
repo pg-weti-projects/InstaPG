@@ -2,16 +2,15 @@
 
 ## RUN
 
-1. Run **InstaPGService/InstaPGService.sln** ( you have to have Visual Studio ( preferred ) or Rider )
-2. It is worth adding the option of running the service application (WCF) and the client application (WPF) simultaneously.
-To do this, in **Visual Studio**, in **Solution Explorer** right-click on **Solution 'InstaPGService'** and enter properties.
-In the Common **Properties/Startup Project** tab, select the **Multiple startup projects** option and set Action to 'Start'
-for **InstaPGClient** and **InstaPGService**. After this operation, both applications will start automatically when you
-run project from VS.
+1. Navigate to WcfServiceLibrary1 and run WcfServiceLibrary1.sln.
+2. Navigate to InstaPGClient and run InstaPGClient.sln.
+3. Create new reference in InstaPGClient project:
+   1. Right click on the InstaPGClient project -> Add -> Service Reference.
+   2. In **Address** put: http://localhost:8733/Design_Time_Addresses/ActiveUsersService/
+   3. Click 'Go'. If service will be available in **Services** you can fill **Namespace** with ActiveUsersServiceReference .
+4. If no error occurs you can run the InstaPGClient project.
 
 
-## DEPENDENCIES
+## ERRORS
 
-InstaPGService --> WCF Service app ( broker for client apps )
-
-InstaPGClient --> WPF Client app
+1. If you have problem with creating new reference you can remove Connected Services, obj and bin directory in InstaPGClient directory.
