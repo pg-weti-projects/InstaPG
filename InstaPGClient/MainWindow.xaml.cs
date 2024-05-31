@@ -34,10 +34,6 @@ namespace InstaPGClient
             {
                 MainTab.Visibility = Visibility.Collapsed;
             }
-            activeUsersTimer = new DispatcherTimer();
-            activeUsersTimer.Interval = TimeSpan.FromSeconds(5); // Ustaw interwał na 5 sekund
-            activeUsersTimer.Tick += ActiveUsersTimer_Tick;
-            activeUsersTimer.Start();
         }
 
         private void ActiveUsersTimer_Tick(object sender, EventArgs e)
@@ -73,6 +69,11 @@ namespace InstaPGClient
         {
             string username = LoginUser.Text;
             string password = LoginPassword.Password;
+
+            activeUsersTimer = new DispatcherTimer();
+            activeUsersTimer.Interval = TimeSpan.FromSeconds(5);
+            activeUsersTimer.Tick += ActiveUsersTimer_Tick;
+            activeUsersTimer.Start();
 
             if (GlobalSQLHelper.AuthenticateUser(username, password))
             {
@@ -147,6 +148,7 @@ namespace InstaPGClient
         {
             try
             {
+                activeUsersTimer.Stop();
                 activeUsersClient.RemoveActiveUser(LoginUser.Text);
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();
@@ -314,8 +316,11 @@ namespace InstaPGClient
                 UsersList.Items.Clear();
                 foreach (var userName in activeUsers)
                 {
-                    users.Add(GlobalSQLHelper.GetUserDataByHisUserName(userName));
-                    UsersList.Items.Add(userName);   
+                    if (userName != CurrentUser.UserName)
+                    {
+                        users.Add(GlobalSQLHelper.GetUserDataByHisUserName(userName));
+                        UsersList.Items.Add(userName);
+                    }
                 }
             }
             catch (Exception ex)
