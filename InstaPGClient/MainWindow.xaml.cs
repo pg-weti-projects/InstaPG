@@ -11,6 +11,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using InstaPGClient.ActiveUsersServiceReference;
 using System.Linq;
+using System.Windows.Threading;
 
 namespace InstaPGClient
 {
@@ -21,6 +22,7 @@ namespace InstaPGClient
         private SQLiteHelper GlobalSQLHelper = new SQLiteHelper();
         private List<User> users = new List<User>(); // Store here the other users Objects ( all from db or from current session )
         public User CurrentUser { get; set; }
+        private DispatcherTimer activeUsersTimer;
 
         public MainWindow()
         {
@@ -32,6 +34,15 @@ namespace InstaPGClient
             {
                 MainTab.Visibility = Visibility.Collapsed;
             }
+            activeUsersTimer = new DispatcherTimer();
+            activeUsersTimer.Interval = TimeSpan.FromSeconds(5); // Ustaw interwał na 5 sekund
+            activeUsersTimer.Tick += ActiveUsersTimer_Tick;
+            activeUsersTimer.Start();
+        }
+
+        private void ActiveUsersTimer_Tick(object sender, EventArgs e)
+        {
+            UpdateActiveUsersList();
         }
         
         /// <summary>
@@ -136,7 +147,7 @@ namespace InstaPGClient
         {
             try
             {
-                // activeUsersClient.RemoveActiveUser(client.CurrentUserData["pseudonim"].ToString()); TODO: fix this ( does not work if you click on the logout button )
+                activeUsersClient.RemoveActiveUser(LoginUser.Text);
                 client.SetUserLogged(false);
                 client.ClearCurrentUserData();
                 LoginTab.Visibility = Visibility.Visible;
@@ -303,11 +314,8 @@ namespace InstaPGClient
                 UsersList.Items.Clear();
                 foreach (var userName in activeUsers)
                 {
-                    if (userName != CurrentUser.UserName)
-                    {
-                        users.Add(GlobalSQLHelper.GetUserDataByHisUserName(userName));
-                        UsersList.Items.Add(userName);   
-                    }
+                    users.Add(GlobalSQLHelper.GetUserDataByHisUserName(userName));
+                    UsersList.Items.Add(userName);   
                 }
             }
             catch (Exception ex)
